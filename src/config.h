@@ -1,3 +1,7 @@
+#ifndef CONFIG
+#define CONFIG
+
+#include <Arduino.h>
 
 // PINS
 #define LED_PIN 2 // builtin
@@ -11,33 +15,33 @@
 #define BME_I2C_ID 0x76
 #define ACCESS_POINT_IP "192.168.1.1"
 #define FORCE_USE_HOTSPOT 0
-#define WIFI_DEFAULT_SSID = "***REMOVED***"
-#define WIFI_DEFAULT_PW = "***REMOVED***"
-#define MQTT_DEFAULT_BROKER "192.168.1.100"
+#define WIFI_DEFAULT_SSID "***REMOVED***"
+#define WIFI_DEFAULT_PW "***REMOVED***"
+#define MQTT_DEFAULT_IP "192.168.1.100"
 #define MQTT_DEFAULT_PORT 1883
 
+// NVM KEY VALUES
+#define NVM_WIFI_SSID "WIFI_SSID"
+#define NVM_WIFI_PW "WIFI_PW"
+#define NVM_MQTT_IP "MQTT_IP"
+#define NVM_MQTT_PORT "MQTT_PORT"
+
 // IDENTIFICATION
-String HOSTNAME = "FermControl";
-int VERSION = 2;
-String DISPLAY_NAME = HOSTNAME + "v" + String(VERSION);
+#define HOSTNAME "FermControl"
+#define VERSION 2
 
-
-//#define UPDATE_DELTA 200 // in ms
-
-//#define UI_USE_FS // dont use flash for ui, we hardly have enough as it is
-
-
-// uncomment to disable verbose logging
-//#define DEBUG_ESPUI
-#define TELEGRAM_DEBUG
-
-#define MEMORY_REPORTING_TIME 5 //seconds between displaying free ram
-
-// #define TELEGRAM_BOT_TOKEN "***REMOVED***"
-// #define TELEGRAM_CHAT_ID "***REMOVED***"
-// #define TELEGRAM_WAITFOR 10000
-
+// SENSOR RANGES
 #define INVALID_MINIMUM_TEMP 0
 #define INVALID_MAX_TEMP 80
 
-//#define SWITCH_DELAY 3 * 1000 //3 seconds
+
+// LOG LEVELS
+#define LOG_DEBUG 1
+#define LOG_WARNING 2
+#define LOG_PANIC 3
+
+
+// #define TELEGRAM_BOT_TOKEN "***REMOVED***"
+// #define TELEGRAM_CHAT_ID "***REMOVED***"
+
+#endif /* CONFIG */

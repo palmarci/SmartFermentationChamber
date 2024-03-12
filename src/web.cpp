@@ -4,13 +4,10 @@
 #include <WiFi.h>
 #include <ESPmDNS.h>
 
-#include "logic.h"
+//#include "logic.h"
 #include "config.h"
 
-// defines for ui
-uint16_t humidifier_control, heater_control, target_temp_control, \
-status_control, target_hum_control, automatic_mode_control, \
-reboot_control, wifi_ssid_text, wifi_pass_text, test_telegram_msg_control;
+
 
 // callbacks
 void set_wifi_details_callback(Control *sender, int type)
@@ -19,9 +16,9 @@ void set_wifi_details_callback(Control *sender, int type)
 	{
 		return;
 	}
-	logprint("Saving credentials to EPROM...");
-	logprint(ESPUI.getControl(wifi_ssid_text)->value);
-	logprint(ESPUI.getControl(wifi_pass_text)->value);
+	log("Saving credentials to EPROM...");
+	log(ESPUI.getControl(wifi_ssid_text)->value);
+	log(ESPUI.getControl(wifi_pass_text)->value);
 	unsigned int i;
 	EEPROM.begin(100);
 	for (i = 0; i < ESPUI.getControl(wifi_ssid_text)->value.length(); i++)
@@ -46,43 +43,43 @@ void general_callback(Control *sender, int type)
 {
 #ifdef DEBUG_LOG_CALLBACK
 	String debug = "[callback] id=" + String(sender->id) + " type=" + String(type) + " label=" + String(sender->label) + " ->" + String(sender->value);
-	logprint(debug);
+	log(debug);
 #endif
 
 	if (sender->id == humidifier_control)
 	{
 		humidifier_enabled = sender->value == "1";
-		logprint("[ui callback] set humidifier_enabled to " + String(humidifier_enabled));
+		log("[ui callback] set humidifier_enabled to " + String(humidifier_enabled));
 	}
 
 	if (sender->id == heater_control)
 	{
 		heater_enabled = sender->value == "1";
-		logprint("[ui callback] set heater_enabled to " + String(heater_enabled));
+		log("[ui callback] set heater_enabled to " + String(heater_enabled));
 	}
 	// TODO target temp & hum range validation in server side
 	if (sender->id == target_hum_control)
 	{
-		logprint("[ui callback] setting target_humidity to " + String(sender->value));
+		log("[ui callback] setting target_humidity to " + String(sender->value));
 		target_humidity = sender->value.toFloat();
 	}
 
 	if (sender->id == target_temp_control)
 	{
-		logprint("[ui callback] setting target_temp to " + String(sender->value));
+		log("[ui callback] setting target_temp to " + String(sender->value));
 		target_temp = sender->value.toFloat();
 	}
 
 	if (sender->id == automatic_mode_control)
 	{
 		automatic_mode = sender->value == "1";
-		logprint("[ui callback] set automatic_mode to " + String(automatic_mode));
+		log("[ui callback] set automatic_mode to " + String(automatic_mode));
 		ESPUI.setEnabled(humidifier_control, !automatic_mode);
 		ESPUI.setEnabled(heater_control, !automatic_mode);
 	}
 
 	if (sender->id == reboot_control) {
-		logprint("[ui callback] reboot called");
+		log("[ui callback] reboot called");
 		reboot();
 	}
 
@@ -132,9 +129,9 @@ void setUpUI()
 
 	// start the ui
 #ifdef UI_USE_FS
-	logprint("[setupui] starting to prepare fs");
+	log("[setupui] starting to prepare fs");
 	ESPUI.prepareFileSystem();
-	logprint("[setupui] prepareFileSystem finished");
+	log("[setupui] prepareFileSystem finished");
 	ESPUI.list();
 #endif
 
@@ -159,7 +156,7 @@ void wifi_connect()
 
 	WiFi.setHostname(HOSTNAME.c_str());
 
-	logprint("[wifi] starting...");
+	log("[wifi] starting...");
 
 	if (!FORCE_USE_HOTSPOT)
 	{
@@ -170,12 +167,12 @@ void wifi_connect()
 		read_string_from_EEPROM(stored_pass, 32, 96);
 		EEPROM.end();
 
-		logprint("[wifi] got stored ssid=" + stored_ssid);
-		logprint("[wifi] got stored password=" + stored_pass);
+		log("[wifi] got stored ssid=" + stored_ssid);
+		log("[wifi] got stored password=" + stored_pass);
 		WiFi.begin(stored_ssid.c_str(), stored_pass.c_str());
 
 		connect_timeout = 28;
-		logprint("[wifi] trying to connect to stored...");
+		log("[wifi] trying to connect to stored...");
 		while (WiFi.status() != WL_CONNECTED && connect_timeout > 0)
 		{
 			delay(250);
@@ -186,17 +183,17 @@ void wifi_connect()
 
 	if (WiFi.status() == WL_CONNECTED)
 	{
-		logprint(WiFi.localIP().toString());
-		logprint("[wifi] connected!");
+		log(WiFi.localIP().toString());
+		log("[wifi] connected!");
 
 		if (!MDNS.begin(HOSTNAME))
 		{
-			logprint("[wifi] error setting up MDNS responder!");
+			log("[wifi] error setting up MDNS responder!");
 		}
 	}
 	else
 	{
-		logprint("[wifi] failed, creating access point...");
+		log("[wifi] failed, creating access point...");
 		WiFi.mode(WIFI_AP);
 		IPAddress ip;
 		bool ip_parse_success = ip.fromString(ACCESS_POINT_IP);
@@ -234,7 +231,7 @@ void loop()
 		switch (Serial.read())
 		{
 		case 'I':
-			logprint(WiFi.localIP().toString());
+			log(WiFi.localIP().toString());
 			break;
 		case 'W':
 			wifi_connect();
