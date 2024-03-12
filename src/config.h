@@ -43,8 +43,8 @@
 #define LOG_WARNING 2
 #define LOG_PANIC 3
 
-
 // #define TELEGRAM_BOT_TOKEN "***REMOVED***"
 // #define TELEGRAM_CHAT_ID "***REMOVED***"
+// TODO notify user if target is not reached after X minutes -> implement in monitor script
 
 #endif /* CONFIG */

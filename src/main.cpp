@@ -76,8 +76,20 @@ void web_task(void *parameter)
 	}
 }
 
-// TODO notify user if target is not reached after X minutes ?
-// TODO restart if offline for X minutes ?
+// TODO mqtt heartbeat task
+// TODO new sensor logic ->
+
+/*
+	measure every 1 second
+	after 5s: 
+		if any measurement is over allowed max -> halt
+		if there is no data after filter -> return last valid avg
+		filter out invalid data
+		if there is no new data after 1 mintues -> halt
+		create avg 
+		send new avg only to mqtt
+*/ 
+
 void setup()
 {
 	Serial.begin(115200);

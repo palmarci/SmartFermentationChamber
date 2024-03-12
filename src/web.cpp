@@ -54,13 +54,14 @@ void general_callback(Control *sender, int type)
 	{
 		bool new_state = sender->value == "1";
 		set_autopilot(new_state);
-		web_update();
 	}
 
 	if (sender->id == reboot_control)
 	{
 		reboot("reboot called from web ui");
 	}
+
+	web_update();
 }
 
 void web_update()
@@ -100,6 +101,7 @@ void web_init()
 	wifi_pass_control = ESPUI.addControl(Text, "Password", "", Alizarin, settings_tab, general_callback);
 
 	//TODO order
+	//TODO add mqtt settings
 	ESPUI.addControl(Max, "", "64", None, wifi_pass_control);
 	ESPUI.addControl(Button, "Save Wifi", "Save Wifi", Peterriver, settings_tab, general_callback);
 	ESPUI.addControl(Max, "", "32", None, wifi_ssid_control);
