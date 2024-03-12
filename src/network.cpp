@@ -41,7 +41,7 @@ void mqtt_send(String topic, String msg)
 {
 	if (!mqtt_connected)
 	{
-		mqtt_connect();
+		mqtt_init();
 	}
 
 	if (!mqtt_connected)
@@ -51,7 +51,6 @@ void mqtt_send(String topic, String msg)
 	}
 	topic.replace("/", "");
 	topic = String(HOSTNAME) + "/" + topic;
-	// logprint("[mqtt] sending data: " + topic + " -> " + msg); infinite loop
 	mqtt_client.publish(topic.c_str(), msg.c_str());
 }
 
@@ -93,14 +92,13 @@ void wifi_init()
 	{
 		String ssid = nvm_read_string(NVM_WIFI_SSID);
 		String pw = nvm_read_string(NVM_WIFI_PW);
-		logprint("got stored ssid=" + ssid);
-		logprint("got stored password=" + pw);
 		wifi_connect(ssid, pw);
 		if (wifi_connected())
 		{
 			return;
 		}
 	}
+	logprint("failed to connect to wifi!", LOG_WARNING);
 	wifi_create_ap();
 	WiFi.setSleep(false);
 }

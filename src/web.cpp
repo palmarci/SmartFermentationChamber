@@ -4,94 +4,106 @@
 #include "config.h"
 #include "web.h"
 #include "utils.h"
+#include "control.h"
+#include "sensors.h"
+
+uint16_t humidifier_control;
+uint16_t heater_control;
+uint16_t target_temp_control;
+uint16_t status_control;
+uint16_t target_hum_control;
+uint16_t autopilot_control;
+uint16_t reboot_control;
+uint16_t wifi_ssid_control;
+uint16_t wifi_pass_control;
+uint16_t ferm_tab;
+uint16_t settings_tab;
 
 void general_callback(Control *sender, int type)
 {
-	String debug = "[callback] id=" + String(sender->id) + " type=" + String(type) + " label=" + String(sender->label) + " ->" + String(sender->value);
+	String debug = "CALLBACK: id=" + String(sender->id) + " type=" + String(type) + " label=" +
+				   String(sender->label) + " -> " + String(sender->value);
 	logprint(debug);
 
 	if (sender->id == humidifier_control)
 	{
-		humidifier_enabled = sender->value == "1";
-		logprint("[ui callback] set humidifier_enabled to " + String(humidifier_enabled));
+		bool new_state = sender->value == "1";
+		set_humidifer(new_state);
 	}
 
 	if (sender->id == heater_control)
 	{
-		heater_enabled = sender->value == "1";
-		logprint("[ui callback] set heater_enabled to " + String(heater_enabled));
+		bool new_state = sender->value == "1";
+		set_heater(new_state);
 	}
-	// TODO target temp & hum range validation in server side
+
 	if (sender->id == target_hum_control)
 	{
-		logprint("[ui callback] setting target_humidity to " + String(sender->value));
-		target_humidity = sender->value.toFloat();
+		// TODO target temp & hum range validation in server side
+		float new_hum = sender->value.toFloat();
+		set_target_hum(new_hum);
 	}
 
 	if (sender->id == target_temp_control)
 	{
-		logprint("[ui callback] setting target_temp to " + String(sender->value));
-		target_temp = sender->value.toFloat();
+		float new_temp = sender->value.toFloat();
+		set_target_temp(new_temp);
 	}
 
-	if (sender->id == automatic_mode_control)
+	if (sender->id == autopilot_control)
 	{
-		automatic_mode = sender->value == "1";
-		logprint("[ui callback] set automatic_mode to " + String(automatic_mode));
-		ESPUI.setEnabled(humidifier_control, !automatic_mode);
-		ESPUI.setEnabled(heater_control, !automatic_mode);
+		bool new_state = sender->value == "1";
+		set_autopilot(new_state);
+		web_update();
 	}
 
-	if (sender->id == reboot_control) {
-		logprint("[ui callback] reboot called");
-		reboot();
-	}
-
-	if (sender->id == test_telegram_msg_control) {
-		alert("This is a test message from " + String(HOSTNAME));
-		//reboot();
+	if (sender->id == reboot_control)
+	{
+		reboot("reboot called from web ui");
 	}
 }
 
-// main ui setup
-void setUpUI()
+void web_update()
+{
+	ESPUI.setEnabled(humidifier_control, !get_autopilot_state());
+	ESPUI.setEnabled(heater_control, !get_autopilot_state());
+	ESPUI.updateLabel(status_control, get_sensor_status_text());
+}
+
+// TODO save everything in nvm
+void web_init()
 {
 	ESPUI.setVerbosity(Verbosity::Quiet);
 	ESPUI.sliderContinuous = true;
 
-	// settings tab
-	auto settings_tab = ESPUI.addControl(Tab, "config", "Configuration");
-	automatic_mode_control = ESPUI.addControl(Switcher, "Automatic mode", bool_to_str(automatic_mode), Alizarin, settings_tab, general_callback);
-	heater_control = ESPUI.addControl(Switcher, "Heater enabled", bool_to_str(heater_enabled), Alizarin, settings_tab, general_callback);
-	humidifier_control = ESPUI.addControl(Switcher, "Humidifier enabled", bool_to_str(humidifier_enabled), Alizarin, settings_tab, general_callback);
+	// fermentation tab
+	ferm_tab = ESPUI.addControl(Tab, "ferm_tab", "Fermentation settings");
 
-	status_control = ESPUI.addControl(Label, "Status", "...", Sunflower, settings_tab, general_callback);
-	target_temp_control = ESPUI.addControl(Number, "Target temperature (in C)", String(target_temp), Emerald, settings_tab, general_callback);
-	target_hum_control = ESPUI.addControl(Number, "Target humidity (in %)", String(target_humidity), Emerald, settings_tab, general_callback);
+	autopilot_control = ESPUI.addControl(Switcher, "Autopilot mode", bool_to_str(get_autopilot_state()), Alizarin, ferm_tab, general_callback);
+	heater_control = ESPUI.addControl(Switcher, "Heater", bool_to_str(get_heater_state()), Alizarin, ferm_tab, general_callback);
+	humidifier_control = ESPUI.addControl(Switcher, "Humidifier", bool_to_str(get_humidifer_state()), Alizarin, ferm_tab, general_callback);
+	status_control = ESPUI.addControl(Label, "Status", "...", Sunflower, ferm_tab, general_callback);
+	target_temp_control = ESPUI.addControl(Number, "Target temperature (in C)", String(get_target_temp()), Emerald, ferm_tab, general_callback);
+	target_hum_control = ESPUI.addControl(Number, "Target humidity (in %)", String(get_target_hum()), Emerald, ferm_tab, general_callback);
 
-	ESPUI.setEnabled(humidifier_control, !automatic_mode);
-	ESPUI.setEnabled(heater_control, !automatic_mode);
+	ESPUI.addControl(Min, "", String(INVALID_MINIMUM_TEMP), None, target_temp_control);
+	ESPUI.addControl(Max, "", String(INVALID_MAX_TEMP), None, target_temp_control);
+	ESPUI.addControl(Min, "", String(0), None, target_hum_control);
+	ESPUI.addControl(Max, "", String(100), None, target_hum_control);
 
-
-	//TODO error handling = send alert (telegram?), turn off everything, relay default NC
-	ESPUI.addControl(Min, "", String(target_temp_min), None, target_temp_control);
-	ESPUI.addControl(Max, "", String(target_temp_max), None, target_temp_control);
-	ESPUI.addControl(Min, "", String(hum_min), None, target_hum_control);
-	ESPUI.addControl(Max, "", String(hum_max), None, target_hum_control);
-
+	// config tab
+	settings_tab = ESPUI.addControl(Tab, "settings_tab", "Settings");
+	wifi_ssid_control = ESPUI.addControl(Text, "SSID", "", Alizarin, settings_tab, general_callback);
 	reboot_control = ESPUI.addControl(Button, "Restart", "Restart", Peterriver, settings_tab, general_callback);
+	wifi_pass_control = ESPUI.addControl(Text, "Password", "", Alizarin, settings_tab, general_callback);
 
-	// wifi settings tab
-	auto wifitab = ESPUI.addControl(Tab, "", "WiFi Settings");
-	ESPUI.addControl(Label, "Note", "Please press enter in the textboxes before clicking on save!", Emerald, wifitab, general_callback);
-	wifi_ssid_text = ESPUI.addControl(Text, "SSID", "", Alizarin, wifitab, general_callback);
-	ESPUI.addControl(Max, "", "32", None, wifi_ssid_text);
-	wifi_pass_text = ESPUI.addControl(Text, "Password", "", Alizarin, wifitab, general_callback);
-	ESPUI.addControl(Max, "", "64", None, wifi_pass_text);
-	ESPUI.addControl(Button, "Save Wifi", "Save Wifi", Peterriver, wifitab, set_wifi_details_callback);
-	test_telegram_msg_control = ESPUI.addControl(Button, "Test Message", "Send Test Message", Peterriver, wifitab, general_callback);
+	ESPUI.addControl(Max, "", "64", None, wifi_pass_control);
+	ESPUI.addControl(Button, "Save Wifi", "Save Wifi", Peterriver, settings_tab, general_callback);
+	ESPUI.addControl(Max, "", "32", None, wifi_ssid_control);
+	ESPUI.addControl(Label, "Note", "Please press enter in the textboxes before clicking on save!", Emerald, settings_tab, general_callback);
 
 	String display_name = String(HOSTNAME) + "v" + String(VERSION);
 	ESPUI.begin(display_name.c_str());
-}
 
+	web_update();
+}

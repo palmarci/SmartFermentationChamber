@@ -31,6 +31,16 @@ bool validate_hum_range(float in)
 	return true;
 }
 
+void bme_check_alive()
+{
+	sensors_event_t last_event;
+	bme_sensor.getTemperatureSensor()->getEvent(&last_event);
+	if (last_event.data[0] > 160 || isnan(last_event.data[0]))
+	{
+		reboot("bme sensor may be disconnected");
+	}
+}
+
 float get_humidity()
 {
 	bme_check_alive();
@@ -41,16 +51,6 @@ float get_humidity()
 		halt("read humidity is outside of valid range");
 	}
 	return hum;
-}
-
-void bme_check_alive()
-{
-	sensors_event_t last_event;
-	bme_sensor.getTemperatureSensor()->getEvent(&last_event);
-	if (last_event.data[0] > 160 || isnan(last_event.data[0]))
-	{
-		reboot("bme sensor may be disconnected");
-	}
 }
 
 float get_air_temp()
@@ -111,7 +111,7 @@ void sensors_init()
 	init_bme();
 }
 
-String get_status_text()
+String get_sensor_status_text()
 {
 	String status_text = "Temperature inside the chamber: " + String(get_air_temp()) + "\n" +
 						 "Temperature inside the food: " + String(get_food_temp()) + "\n" +

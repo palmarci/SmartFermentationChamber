@@ -8,5 +8,9 @@ bool get_humidifer_state();
 void control_init();
 void set_autopilot(bool state);
 bool get_autopilot_state();
+float get_target_temp();
+float get_target_hum();
+void set_target_hum(float val); 
+void set_target_temp(float val);
 
 #endif /* CONTROL */
