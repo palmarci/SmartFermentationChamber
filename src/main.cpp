@@ -2,30 +2,46 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 
-// Task 1 function
-void task1(void *parameter) {
+#include "utils.h"
+#include "control.h"
+#include "nvm.h"
+#include "network.h"
+
+// prints available memory
+void memory_task(void *parameter) {
+	int delay = 10 *1000;
 	while (true) {
-		Serial.println("Task 1 is running");
-		vTaskDelay(pdMS_TO_TICKS(1000)); // Delay of 1 second
+		uint32_t freeHeapBytes = heap_caps_get_free_size(MALLOC_CAP_DEFAULT);
+		uint32_t totalHeapBytes = heap_caps_get_total_size(MALLOC_CAP_DEFAULT);
+		float percentageHeapFree = freeHeapBytes * 100.0f / (float)totalHeapBytes;
+		log("free memory: " + String(percentageHeapFree) + " % free of " + String(totalHeapBytes / 1000) + "k");
+		vTaskDelay(pdMS_TO_TICKS(delay));
 	}
 }
 
-// Task 2 function
-void task2(void *parameter) {
+// monitors and reconnects to wifi and mqtt
+void network_task(void *parameter) {
+	int delay = 60 * 1000;
 	while (true) {
-		Serial.println("Task 2 is running");
-		vTaskDelay(pdMS_TO_TICKS(2000)); // Delay of 2 seconds
+		if (!wifi_connected()) {
+			wifi_init();
+		}
+		if (!mqtt_connected) {
+			mqtt_init();
+		}
+		vTaskDelay(pdMS_TO_TICKS(delay));
 	}
 }
 
 void setup() {
 	Serial.begin(115200);
+	control_init();
+	nvm_init();
+	wifi_init();
+	mqtt_init();
 
-	// Create Task 1
-	xTaskCreate(task1, "Task 1", 10000, NULL, 1, NULL);
-
-	// Create Task 2
-	xTaskCreate(task2, "Task 2", 10000, NULL, 1, NULL);
+	xTaskCreate(memory_task, "memory_task", 10000, NULL, 1, NULL);
+	xTaskCreate(network_task, "network_task", 10000, NULL, 1, NULL);
 }
 
 void loop() {
