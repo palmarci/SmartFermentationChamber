@@ -37,7 +37,7 @@ String log_level_to_string(int level) {
 	}
 }
 
-void log(String text, int level = LOG_DEBUG)
+void logprint(String text, int level)
 {
 	String level_text = log_level_to_string(level);
 	// TODO calculate real time
@@ -92,7 +92,7 @@ void do_logic_step()
 	// handle mode switching
 	if (lastmode != automatic_mode)
 	{
-		log("[step] switch detected! is automatic mode enabled?" + String(automatic_mode));
+		logprint("[step] switch detected! is automatic mode enabled?" + String(automatic_mode));
 	}
 	lastmode = automatic_mode;
 
@@ -115,7 +115,7 @@ void do_logic_step()
 //	{
 
 	// debug prints
-	log("[step] called, variables are: automatic=" + String(automatic_mode) +
+	logprint("[step] called, variables are: automatic=" + String(automatic_mode) +
 			 ", heater =" + String(heater_enabled) + ", humidifier=" + String(humidifier_enabled));
 
 	digitalWrite(RELAY_PIN_HEATER, heater_enabled);
@@ -127,7 +127,7 @@ void do_logic_step()
 
 void halt(String reason)
 {
-	log("HALTING! reason: " + reason);
+	logprint("HALTING! reason: " + reason);
 	set_heater(false);
 	set_humidifer(false);
 	//TODO kill all tasks
@@ -145,6 +145,6 @@ void reset()
 
 void reboot(String error_message)
 {
-	log("REBOOT! reason: " + error_message);
+	logprint("REBOOT! reason: " + error_message);
 	reset();
 }

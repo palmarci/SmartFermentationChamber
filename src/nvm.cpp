@@ -29,7 +29,7 @@ bool nvm_validate_stored_config() {
 	
 	if (stored_ssid == "" || stored_pw == "" || \
 		stored_ip == "" || stored_port == "") {
-			log("cannot read config from nvm");
+			logprint("cannot read config from nvm");
 			return false;
 
 		} 

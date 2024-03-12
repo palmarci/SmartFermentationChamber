@@ -35,7 +35,7 @@ float get_humidity()
 {
 	bme_check_alive();
 	float hum = bme_sensor.readHumidity();
-	log("[bme] hum=" + String(hum));
+	logprint("[bme] hum=" + String(hum));
 	if (!validate_hum_range(hum))
 	{
 		halt("read humidity is outside of valid range");
@@ -58,7 +58,7 @@ float get_air_temp()
 	bme_check_alive();
 
 	float temp = bme_sensor.readTemperature();
-	log("[bme] temp=" + String(temp));
+	logprint("[bme] temp=" + String(temp));
 
 	if (!validate_temp_range(temp))
 	{
@@ -72,7 +72,7 @@ float get_food_temp()
 {
 	dallas_sensors.requestTemperatures();
 	float temp = dallas_sensors.getTempCByIndex(0);
-	log("[dallas] read temperature " + String(temp));
+	logprint("[dallas] read temperature " + String(temp));
 	if (temp < -126)
 	{
 		reboot("dallas sensor may be disconnected or faulty, rebooting...");

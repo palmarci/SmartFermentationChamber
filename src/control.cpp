@@ -3,6 +3,7 @@
 
 bool heater_state;
 bool humidifier_state;
+bool autopilot_state;
 
 void set_heater(bool state)
 {	
@@ -24,6 +25,14 @@ bool get_humidifer_state() {
 	return humidifier_state;
 }
 
+void set_autopilot(bool state) {
+	autopilot_state = state;
+}
+
+bool get_autopilot_state() {
+	return autopilot_state;
+}
+
 void control_init()
 {
 	pinMode(LED_PIN, OUTPUT);
@@ -31,4 +40,5 @@ void control_init()
 	pinMode(RELAY_PIN_HUMIDIFIER, OUTPUT);
 	set_heater(false);
 	set_humidifer(false);
+	set_autopilot(true);
 }

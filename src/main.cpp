@@ -14,12 +14,14 @@ void memory_task(void *parameter) {
 		uint32_t freeHeapBytes = heap_caps_get_free_size(MALLOC_CAP_DEFAULT);
 		uint32_t totalHeapBytes = heap_caps_get_total_size(MALLOC_CAP_DEFAULT);
 		float percentageHeapFree = freeHeapBytes * 100.0f / (float)totalHeapBytes;
-		log("free memory: " + String(percentageHeapFree) + " % free of " + String(totalHeapBytes / 1000) + "k");
+		String text = "free memory: " + String(percentageHeapFree) + " % free of " + \
+					String(totalHeapBytes / 1000) + "k";
+		logprint(text);
 		vTaskDelay(pdMS_TO_TICKS(delay));
 	}
 }
 
-// monitors and reconnects to wifi and mqtt
+// monitors & reconnects to wifi and mqtt
 void network_task(void *parameter) {
 	int delay = 60 * 1000;
 	while (true) {
