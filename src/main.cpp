@@ -12,7 +12,7 @@
 // prints available memory
 void memory_task(void *parameter)
 {
-	int delay = 10 * 1000;
+	int delay = 60 * 1000;
 	while (true)
 	{
 		uint32_t freeHeapBytes = heap_caps_get_free_size(MALLOC_CAP_DEFAULT);
@@ -28,7 +28,7 @@ void memory_task(void *parameter)
 // monitors & reconnects to wifi and mqtt
 void network_task(void *parameter)
 {
-	int delay = 60 * 1000;
+	int delay = 30 * 1000;
 	while (true)
 	{
 		if (!wifi_connected())
@@ -46,7 +46,7 @@ void network_task(void *parameter)
 // handles the auto switching of relays based on sensor data
 void autopilot_task(void *parameter)
 {
-	int delay = 3 * 1000;
+	int delay = 5 * 1000;
 	while (true)
 	{
 		if (get_autopilot_state())
@@ -68,7 +68,7 @@ void autopilot_task(void *parameter)
 // updates the web interface
 void web_task(void *parameter)
 {
-	int delay = 1 * 1000;
+	int delay = 2 * 1000;
 	while (true)
 	{
 		web_update();
@@ -76,7 +76,8 @@ void web_task(void *parameter)
 	}
 }
 
-// TODO notify user if target is not reached after X minutes
+// TODO notify user if target is not reached after X minutes ?
+// TODO restart if offline for X minutes ?
 void setup()
 {
 	Serial.begin(115200);
@@ -84,11 +85,13 @@ void setup()
 	nvm_init();
 	wifi_init();
 	mqtt_init();
+	sensors_init();
 	web_init();
 
-	xTaskCreate(memory_task, "memory_task", 10000, NULL, 1, NULL);
+	//xTaskCreate(memory_task, "memory_task", 10000, NULL, 1, NULL);
 	xTaskCreate(network_task, "network_task", 10000, NULL, 1, NULL);
 	xTaskCreate(web_task, "web_task", 10000, NULL, 1, NULL);
+	xTaskCreate(autopilot_task, "autopilot_task", 10000, NULL, 1, NULL);
 }
 
 void loop()

@@ -75,7 +75,8 @@ float get_food_temp()
 	logprint("[dallas] read temperature " + String(temp));
 	if (temp < -126)
 	{
-		reboot("dallas sensor may be disconnected or faulty, rebooting...");
+		return 30; //TODO wtf
+		reboot("dallas sensor may be disconnected or faulty, rebooting..."); //TODO not reboot but halt??
 	}
 
 	if (!validate_temp_range(temp))
@@ -92,8 +93,9 @@ void init_dallas()
 	if (dallas_sensors.getDeviceCount() < 1)
 	{
 		halt("no dallas devices found on bus");
-	}
+	} 
 	dallas_sensors.setResolution(12);
+	logprint("set dallas sensor resolution to maximum");
 }
 
 void init_bme()
@@ -102,6 +104,8 @@ void init_bme()
 	if (!bme_sensor.begin(BME_I2C_ID, &Wire))
 	{
 		halt("no BME280 sensor found");
+	} else {
+		logprint("BME280 sensor initialized successfulyl!");
 	}
 }
 

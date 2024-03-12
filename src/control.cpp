@@ -75,7 +75,8 @@ void control_init()
 	pinMode(RELAY_PIN_HEATER, OUTPUT);
 	pinMode(RELAY_PIN_HUMIDIFIER, OUTPUT);
 	set_target_hum(TARGET_HUMIDITY);
-	set_heater(TARGET_TEMP);
+	set_target_temp(TARGET_TEMP);
+	set_heater(false);
 	set_humidifer(false);
 	set_autopilot(true);
 }

@@ -20,7 +20,9 @@ void mqtt_init()
 bool mqtt_connected()
 {
 	bool state = mqtt_client.connected();
-	logprint("mqtt is connected? " + String(false));
+	// cant use logprint here due to infinite loop
+	//String text = "mqtt currently connected?" + String(state); 
+	//Serial.println(text);
 	return state;
 }
 

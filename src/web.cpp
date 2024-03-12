@@ -68,6 +68,8 @@ void web_update()
 	ESPUI.setEnabled(humidifier_control, !get_autopilot_state());
 	ESPUI.setEnabled(heater_control, !get_autopilot_state());
 	ESPUI.updateLabel(status_control, get_sensor_status_text());
+	ESPUI.updateSwitcher(heater_control, get_heater_state());
+	ESPUI.updateSwitcher(humidifier_control, get_humidifer_state());
 }
 
 // TODO save everything in nvm
@@ -97,13 +99,13 @@ void web_init()
 	reboot_control = ESPUI.addControl(Button, "Restart", "Restart", Peterriver, settings_tab, general_callback);
 	wifi_pass_control = ESPUI.addControl(Text, "Password", "", Alizarin, settings_tab, general_callback);
 
+	//TODO order
 	ESPUI.addControl(Max, "", "64", None, wifi_pass_control);
 	ESPUI.addControl(Button, "Save Wifi", "Save Wifi", Peterriver, settings_tab, general_callback);
 	ESPUI.addControl(Max, "", "32", None, wifi_ssid_control);
 	ESPUI.addControl(Label, "Note", "Please press enter in the textboxes before clicking on save!", Emerald, settings_tab, general_callback);
 
-	String display_name = String(HOSTNAME) + "v" + String(VERSION);
-	ESPUI.begin(display_name.c_str());
+	ESPUI.begin(HOSTNAME); // TODO i cant seem to set this dynamically (or at least with numbers in it)
 
 	web_update();
 }
