@@ -105,13 +105,14 @@ void general_callback(Control *sender, int type)
 
 void web_update()
 {
-	ESPUI.setEnabled(autopilot_control, !get_autopilot_state());
+	ESPUI.setEnabled(humidifier_control, !get_autopilot_state());
 	ESPUI.setEnabled(heater_control, !get_autopilot_state());
 	ESPUI.updateLabel(status_control, get_sensor_status_text());
 	ESPUI.updateSwitcher(heater_control, get_heater_state());
 	ESPUI.updateSwitcher(humidifier_control, get_humidifer_state());
 	ESPUI.updateNumber(target_temp_control, get_target_temp());
 	ESPUI.updateNumber(target_hum_control, get_target_hum());
+	ESPUI.updateSwitcher(autopilot_control, get_autopilot_state());
 }
 
 void web_init()

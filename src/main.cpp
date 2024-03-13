@@ -117,10 +117,10 @@ void set_task_handler(TaskHandle_t handle)
 
 void register_task(void (*taskFunction)(void *), String name)
 {
-	uint32_t defaut_stack_size = 10000;
+	uint32_t defaut_stack_size = 20000;
 	TaskHandle_t taskHandle = NULL;
 	xTaskCreate(taskFunction, name.c_str(), defaut_stack_size, NULL, 1, &taskHandle);
-	set_task_handler(taskHandle); // this is local variable, shouldnt this be a problem?
+	set_task_handler(taskHandle); // this is local variable, shouldn't this be a problem?
 	logprint("registered task " + name);
 }
 
@@ -146,7 +146,6 @@ void setup()
 	sensors_init();
 	web_init();
 
-	//TODO two web instances cause heap crash -> more memory for tasks?
 	register_task(reporting_task, "reporting_task");
 	register_task(network_task, "network_task");
 	register_task(web_update_task, "web_update_task");

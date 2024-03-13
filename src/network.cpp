@@ -54,7 +54,7 @@ bool wifi_connected()
 {
 	// TODO whats the status in AP mode?
 	bool status = (WiFi.status() == WL_CONNECTED);
-	logprint("wifi is connected? " + String(status));
+	logprint("wifi is connected? " + String(status) + " ");
 	return status;
 }
 
