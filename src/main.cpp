@@ -25,7 +25,7 @@ void reporting_task(void *parameter)
 		float percentageHeapFree = freeHeapBytes * 100.0f / (float)totalHeapBytes;
 		String mem_text = "free memory: " + String(percentageHeapFree) + " % free of " +
 						  String(totalHeapBytes / 1000) + "k";
-		String tasks_text = "currently running " + String(running_tasks);
+		String tasks_text = "currently running tasks: " + String(running_tasks);
 		logprint(tasks_text);
 		logprint(mem_text);
 		mqtt_send("heartbeat", "hello");
@@ -92,7 +92,7 @@ void web_update_task(void *parameter)
 	}
 }
 
-// restarts mcu after given time
+// restarts device after given time
 void restart_task(void *parameter)
 {
 	unsigned long delay = RESTART_AFTER * 60 * 60 * 1000;
@@ -120,7 +120,7 @@ void register_task(void (*taskFunction)(void *), String name)
 	uint32_t defaut_stack_size = 10000;
 	TaskHandle_t taskHandle = NULL;
 	xTaskCreate(taskFunction, name.c_str(), defaut_stack_size, NULL, 1, &taskHandle);
-	set_task_handler(taskHandle);
+	set_task_handler(taskHandle); // this is local variable, shouldnt this be a problem?
 	logprint("registered task " + name);
 }
 
@@ -139,13 +139,14 @@ void stop_all_tasks()
 void setup()
 {
 	Serial.begin(115200);
-	control_init();
 	nvm_init();
+	control_init();
 	wifi_init();
 	mqtt_init();
 	sensors_init();
 	web_init();
 
+	//TODO two web instances cause heap crash -> more memory for tasks?
 	register_task(reporting_task, "reporting_task");
 	register_task(network_task, "network_task");
 	register_task(web_update_task, "web_update_task");

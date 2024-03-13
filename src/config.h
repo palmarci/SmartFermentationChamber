@@ -44,7 +44,7 @@
 #define LOG_PANIC 3
 #define MAX_TASK_HANDLES 10
 #define RESTART_AFTER 24 // hours
-#define VERSION "Build " + String(__TIMESTAMP__)
+#define VERSION "Build " + String(__DATE__) + " " + String(__TIME__)
 
 // #define TELEGRAM_BOT_TOKEN "***REMOVED***"
 // #define TELEGRAM_CHAT_ID "***REMOVED***"

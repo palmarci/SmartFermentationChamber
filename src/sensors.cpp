@@ -13,13 +13,15 @@ OneWire onewire_bus(ONEWIRE_BUS_PIN);
 DallasTemperature dallas_sensors(&onewire_bus);
 Adafruit_BME280 bme_sensor;
 
-float last_hum;
-float last_food_temp;
-float last_air_temp;
+#define STARTUP_VALUE -99
 
-unsigned long last_hum_valid;
-unsigned long last_food_temp_valid;
-unsigned long last_air_temp_valid;
+float last_hum = STARTUP_VALUE;
+float last_food_temp = STARTUP_VALUE;
+float last_air_temp = STARTUP_VALUE;
+
+unsigned long last_hum_valid = millis();
+unsigned long last_food_temp_valid = millis();
+unsigned long last_air_temp_valid = millis();
 
 bool validate_temp_range(float input)
 {
@@ -67,7 +69,7 @@ float get_humidity()
 
 	if (!bme_check_alive())
 	{
-		logprint("bme humidity sensor seems to be dead, returning last avg", LOG_WARNING);
+		logprint("bme humidity sensor seems to be dead, returning last measurement", LOG_WARNING);
 		return last_hum;
 	}
 
@@ -78,6 +80,7 @@ float get_humidity()
 	}
 	last_hum = hum;
 	last_hum_valid = millis();
+	logprint("read humditiy=" + String(last_hum));
 	return last_hum;
 }
 
@@ -87,7 +90,7 @@ float get_air_temp()
 
 	if (!bme_check_alive())
 	{
-		logprint("bme temp sensor seems to be dead, returning last avg", LOG_WARNING);
+		logprint("bme temp sensor seems to be dead, returning last measurement", LOG_WARNING);
 		return last_air_temp;
 	}
 
@@ -99,7 +102,7 @@ float get_air_temp()
 	}
 	last_air_temp = temp;
 	last_air_temp_valid = millis();
-
+	logprint("read air temp=" + String(last_air_temp));
 	return last_air_temp;
 }
 
@@ -112,7 +115,7 @@ float get_food_temp()
 
 	if (temp < -126)
 	{
-		logprint("dallas sensor seems to be dead, returning last avg", LOG_WARNING);
+		logprint("dallas sensor seems to be dead, returning last measurement", LOG_WARNING);
 		return last_food_temp;
 	}
 
@@ -122,6 +125,7 @@ float get_food_temp()
 	}
 	last_food_temp = temp;
 	last_food_temp_valid = millis();
+	logprint("read food temp=" + String(last_food_temp));
 	return last_food_temp;
 }
 
@@ -153,6 +157,18 @@ void sensors_init()
 {
 	init_dallas();
 	init_bme();
+	// measure 3 times to update the internal timers
+	// this is a bit hacky but meh
+	float air_temp, food_temp, hum;
+	for (int i = 0; i < 3; i++) {
+		air_temp = get_air_temp();
+		food_temp = get_food_temp();
+		hum = get_humidity();
+	}
+	if (air_temp == STARTUP_VALUE || food_temp == STARTUP_VALUE \
+		|| hum == STARTUP_VALUE) {
+			halt("could not initialize sensors!");
+		}
 }
 
 String get_sensor_status_text()

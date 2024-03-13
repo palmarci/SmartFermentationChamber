@@ -105,29 +105,33 @@ void general_callback(Control *sender, int type)
 
 void web_update()
 {
-	ESPUI.setEnabled(humidifier_control, !get_autopilot_state());
+	ESPUI.setEnabled(autopilot_control, !get_autopilot_state());
 	ESPUI.setEnabled(heater_control, !get_autopilot_state());
 	ESPUI.updateLabel(status_control, get_sensor_status_text());
 	ESPUI.updateSwitcher(heater_control, get_heater_state());
 	ESPUI.updateSwitcher(humidifier_control, get_humidifer_state());
+	ESPUI.updateNumber(target_temp_control, get_target_temp());
+	ESPUI.updateNumber(target_hum_control, get_target_hum());
 }
 
-// TODO save everything in nvm
 void web_init()
 {
 	ESPUI.setVerbosity(Verbosity::Quiet);
 	ESPUI.sliderContinuous = true;
 
+	wifi_ssid_buffer = nvm_read_string(NVM_WIFI_SSID);
+	wifi_pw_buffer = nvm_read_string(NVM_WIFI_PW);
+	mqtt_address_buffer = nvm_read_string(NVM_MQTT_IP);
+	mqtt_port_buffer = nvm_read_string(NVM_MQTT_PORT);
+
 	// fermentation tab
 	ferm_tab = ESPUI.addControl(Tab, "ferm_tab", "Fermentation settings");
-
 	autopilot_control = ESPUI.addControl(Switcher, "Autopilot mode", bool_to_str(get_autopilot_state()), Alizarin, ferm_tab, general_callback);
 	heater_control = ESPUI.addControl(Switcher, "Heater", bool_to_str(get_heater_state()), Alizarin, ferm_tab, general_callback);
 	humidifier_control = ESPUI.addControl(Switcher, "Humidifier", bool_to_str(get_humidifer_state()), Alizarin, ferm_tab, general_callback);
 	status_control = ESPUI.addControl(Label, "Status", "...", Sunflower, ferm_tab, general_callback);
 	target_temp_control = ESPUI.addControl(Number, "Target temperature (in C)", String(get_target_temp()), Emerald, ferm_tab, general_callback);
 	target_hum_control = ESPUI.addControl(Number, "Target humidity (in %)", String(get_target_hum()), Emerald, ferm_tab, general_callback);
-
 	ESPUI.addControl(Min, "", String(INVALID_MINIMUM_TEMP), None, target_temp_control);
 	ESPUI.addControl(Max, "", String(INVALID_MAX_TEMP), None, target_temp_control);
 	ESPUI.addControl(Min, "", String(0), None, target_hum_control);
@@ -135,16 +139,14 @@ void web_init()
 
 	// config tab
 	settings_tab = ESPUI.addControl(Tab, "settings_tab", "Settings");
-	// ESPUI.addControl(Label, "Note", "Please press enter in the textboxes before clicking on save!", Emerald, settings_tab, general_callback);
-	wifi_ssid_control = ESPUI.addControl(Text, "Wifi SSID", "", Alizarin, settings_tab, general_callback);
-	wifi_pw_control = ESPUI.addControl(Text, "Wifi Password", "", Alizarin, settings_tab, general_callback);
-	mqtt_address_control = ESPUI.addControl(Text, "MQTT IP", "", Alizarin, settings_tab, general_callback);
-	mqtt_port_control = ESPUI.addControl(Number, "MQTT Port", String(MQTT_DEFAULT_PORT), Alizarin, settings_tab, general_callback);
+	wifi_ssid_control = ESPUI.addControl(Text, "Wifi SSID", wifi_ssid_buffer, Alizarin, settings_tab, general_callback);
+	wifi_pw_control = ESPUI.addControl(Text, "Wifi Password", wifi_pw_buffer, Alizarin, settings_tab, general_callback);
+	mqtt_address_control = ESPUI.addControl(Text, "MQTT IP", mqtt_address_buffer, Alizarin, settings_tab, general_callback);
+	mqtt_port_control = ESPUI.addControl(Number, "MQTT Port", mqtt_port_buffer, Alizarin, settings_tab, general_callback);
 	reboot_control = ESPUI.addControl(Button, "Restart", "Restart", Peterriver, settings_tab, general_callback);
 	ESPUI.addControl(Label, "Version", VERSION, Emerald, settings_tab, general_callback);
 	save_config_control = ESPUI.addControl(Button, "Save", "Save", Peterriver, settings_tab, general_callback);
 
 	ESPUI.begin(HOSTNAME);
-
 	web_update();
 }

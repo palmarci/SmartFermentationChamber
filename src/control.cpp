@@ -73,6 +73,8 @@ void control_init()
 	pinMode(RELAY_PIN_HUMIDIFIER, OUTPUT);
 	String hum_str = nvm_read_string(NVM_TARGET_HUM);
 	String temp_str = nvm_read_string(NVM_TARGET_TEMP);
+	logprint("read target hum from nvm: " + hum_str);
+	logprint("read target temp from nvm: " + temp_str);
 	set_target_hum(hum_str.toFloat());
 	set_target_temp(temp_str.toFloat());
 	set_heater(false);
