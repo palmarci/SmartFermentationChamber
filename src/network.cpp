@@ -21,8 +21,8 @@ bool mqtt_connected()
 {
 	bool state = mqtt_client.connected();
 	// cant use logprint here due to infinite loop
-	//String text = "mqtt currently connected?" + String(state); 
-	//Serial.println(text);
+	// String text = "mqtt currently connected?" + String(state);
+	// Serial.println(text);
 	return state;
 }
 
@@ -41,7 +41,8 @@ void mqtt_connect(String ip_string, int port)
 
 void mqtt_send(String topic, String msg)
 {
-	if (!mqtt_connected()) {
+	if (!mqtt_connected())
+	{
 		return;
 	}
 	topic = remove_leading_slash(topic);

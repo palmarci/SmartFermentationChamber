@@ -88,7 +88,8 @@ void general_callback(Control *sender, int type)
 		wifi_pw_buffer = ESPUI.getControl(wifi_pw_control)->value;
 	}
 
-	if (sender->id == save_config_control) {
+	if (sender->id == save_config_control)
+	{
 		nvm_write_string(NVM_MQTT_IP, mqtt_address_buffer);
 		nvm_write_string(NVM_MQTT_PORT, mqtt_port_buffer);
 		nvm_write_string(NVM_WIFI_SSID, wifi_ssid_buffer);
@@ -134,7 +135,7 @@ void web_init()
 
 	// config tab
 	settings_tab = ESPUI.addControl(Tab, "settings_tab", "Settings");
-	//ESPUI.addControl(Label, "Note", "Please press enter in the textboxes before clicking on save!", Emerald, settings_tab, general_callback);
+	// ESPUI.addControl(Label, "Note", "Please press enter in the textboxes before clicking on save!", Emerald, settings_tab, general_callback);
 	wifi_ssid_control = ESPUI.addControl(Text, "Wifi SSID", "", Alizarin, settings_tab, general_callback);
 	wifi_pw_control = ESPUI.addControl(Text, "Wifi Password", "", Alizarin, settings_tab, general_callback);
 	mqtt_address_control = ESPUI.addControl(Text, "MQTT IP", "", Alizarin, settings_tab, general_callback);

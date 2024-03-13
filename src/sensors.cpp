@@ -51,6 +51,16 @@ bool bme_check_alive()
 	return true;
 }
 
+void check_sensor_timeout(unsigned long last_valid)
+{
+	unsigned long now = millis();
+	unsigned long limit = last_valid + (SENSOR_MEASUREMENT_TIMEOUT * 1000);
+	if (limit < now)
+	{
+		halt("could not read data from sensor for more than the set timeout");
+	}
+}
+
 float get_humidity()
 {
 	check_sensor_timeout(last_hum_valid);
@@ -69,16 +79,6 @@ float get_humidity()
 	last_hum = hum;
 	last_hum_valid = millis();
 	return last_hum;
-}
-
-void check_sensor_timeout(unsigned long last_valid)
-{
-	unsigned long now = millis();
-	unsigned long limit = last_valid + (SENSOR_MEASUREMENT_TIMEOUT * 1000);
-	if (limit < now)
-	{
-		halt("could not read data from sensor for more than the set timeout");
-	}
 }
 
 float get_air_temp()

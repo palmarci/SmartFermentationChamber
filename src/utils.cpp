@@ -20,6 +20,7 @@ String log_level_to_string(int level)
 	case LOG_PANIC:
 		return "panic";
 	}
+	return "unknown";
 }
 
 void logprint(String text, int level = LOG_DEBUG)

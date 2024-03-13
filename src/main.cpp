@@ -5,6 +5,14 @@
 #include "sensors.h"
 #include "web.h"
 #include "main.h"
+#include "config.h"
+
+#include <Arduino.h>
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
+
+TaskHandle_t task_handles[MAX_TASK_HANDLES] = {NULL};
+int running_tasks = 0;
 
 // reports current status and sends heartbeat on mqtt
 void reporting_task(void *parameter)
@@ -116,13 +124,16 @@ void register_task(void (*taskFunction)(void *), String name)
 	logprint("registered task " + name);
 }
 
-void stop_all_tasks() {
-    for (int i = 0; i < running_tasks; i++) {
-        if (task_handles[i] != NULL) {
-            vTaskDelete(task_handles[i]);
-            task_handles[i] = NULL;
-        }
-    }
+void stop_all_tasks()
+{
+	for (int i = 0; i < running_tasks; i++)
+	{
+		if (task_handles[i] != NULL)
+		{
+			vTaskDelete(task_handles[i]);
+			task_handles[i] = NULL;
+		}
+	}
 }
 
 void setup()

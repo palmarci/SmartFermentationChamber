@@ -30,10 +30,6 @@
 #define NVM_TARGET_TEMP "NVM_TARGET_TEMP"
 #define NVM_TARGET_HUM "NVM_TARGET_HUM"
 
-// IDENTIFICATION
-#define HOSTNAME "FermControl"
-#define VERSION 2
-
 // SENSORS
 #define INVALID_MINIMUM_TEMP 0
 #define INVALID_MAX_TEMP 80
@@ -42,6 +38,7 @@
 #define SENSOR_MEASUREMENT_TIMEOUT 30 //seconds
 
 // SYSTEM
+#define HOSTNAME "FermControl"
 #define LOG_DEBUG 1
 #define LOG_WARNING 2
 #define LOG_PANIC 3
