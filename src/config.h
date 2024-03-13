@@ -32,19 +32,21 @@
 #define HOSTNAME "FermControl"
 #define VERSION 2
 
-// TEMPERATURES
+// SENSORS
 #define INVALID_MINIMUM_TEMP 0
 #define INVALID_MAX_TEMP 80
 #define TARGET_HUMIDITY 80
 #define TARGET_TEMP 60
+#define SENSOR_MEASUREMENT_TIMEOUT 30 //seconds
 
-// LOG LEVELS
+// SYSTEM
 #define LOG_DEBUG 1
 #define LOG_WARNING 2
 #define LOG_PANIC 3
+#define MAX_TASK_HANDLES 10
+#define RESTART_AFTER 24 // hours
 
 // #define TELEGRAM_BOT_TOKEN "***REMOVED***"
 // #define TELEGRAM_CHAT_ID "***REMOVED***"
-// TODO notify user if target is not reached after X minutes -> implement in monitor script
 
 #endif /* CONFIG */

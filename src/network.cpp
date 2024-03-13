@@ -41,17 +41,10 @@ void mqtt_connect(String ip_string, int port)
 
 void mqtt_send(String topic, String msg)
 {
-	if (!mqtt_connected)
-	{
-		mqtt_init();
-	}
-
-	if (!mqtt_connected)
-	{
-		logprint("failed to connect to mqtt!", LOG_WARNING);
+	if (!mqtt_connected()) {
 		return;
 	}
-	topic.replace("/", "");
+	topic = remove_leading_slash(topic);
 	topic = String(HOSTNAME) + "/" + topic;
 	mqtt_client.publish(topic.c_str(), msg.c_str());
 }

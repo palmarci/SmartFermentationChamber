@@ -8,5 +8,6 @@ void logprint(String text, int level = LOG_DEBUG);
 String bool_to_str(bool val);
 void halt(String reason);
 void reboot(String error_message);
+String remove_leading_slash(String input);
 
 #endif /* UTILS */

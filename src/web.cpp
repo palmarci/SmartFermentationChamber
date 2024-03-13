@@ -39,14 +39,19 @@ void general_callback(Control *sender, int type)
 
 	if (sender->id == target_hum_control)
 	{
-		// TODO target temp & hum range validation in server side
 		float new_hum = sender->value.toFloat();
+		if (!validate_hum_range(new_hum)) {
+			halt("out of range humity was read from user: " + String(new_hum));
+		}
 		set_target_hum(new_hum);
 	}
 
 	if (sender->id == target_temp_control)
 	{
 		float new_temp = sender->value.toFloat();
+		if (!validate_temp_range(new_temp)) {
+			halt("out of range temperature was read from user: " + String(new_temp));
+		}
 		set_target_temp(new_temp);
 	}
 

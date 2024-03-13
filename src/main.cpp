@@ -1,16 +1,13 @@
-#include <Arduino.h>
-#include <freertos/FreeRTOS.h>
-#include <freertos/task.h>
-
 #include "utils.h"
 #include "control.h"
 #include "nvm.h"
 #include "network.h"
 #include "sensors.h"
 #include "web.h"
+#include "main.h"
 
-// prints available memory
-void memory_task(void *parameter)
+// reports current status and sends heartbeat on mqtt
+void reporting_task(void *parameter)
 {
 	int delay = 60 * 1000;
 	while (true)
@@ -18,9 +15,12 @@ void memory_task(void *parameter)
 		uint32_t freeHeapBytes = heap_caps_get_free_size(MALLOC_CAP_DEFAULT);
 		uint32_t totalHeapBytes = heap_caps_get_total_size(MALLOC_CAP_DEFAULT);
 		float percentageHeapFree = freeHeapBytes * 100.0f / (float)totalHeapBytes;
-		String text = "free memory: " + String(percentageHeapFree) + " % free of " +
-					  String(totalHeapBytes / 1000) + "k";
-		logprint(text);
+		String mem_text = "free memory: " + String(percentageHeapFree) + " % free of " +
+						  String(totalHeapBytes / 1000) + "k";
+		String tasks_text = "currently running " + String(running_tasks);
+		logprint(tasks_text);
+		logprint(mem_text);
+		mqtt_send("heartbeat", "hello");
 		vTaskDelay(pdMS_TO_TICKS(delay));
 	}
 }
@@ -59,14 +59,22 @@ void autopilot_task(void *parameter)
 			{
 				set_heater(false);
 			}
-			// TODO humidity
+
+			if (get_humidity() < get_target_hum())
+			{
+				set_humidifer(true);
+			}
+			else
+			{
+				set_humidifer(false);
+			}
 		}
 		vTaskDelay(pdMS_TO_TICKS(delay));
 	}
 }
 
 // updates the web interface
-void web_task(void *parameter)
+void web_update_task(void *parameter)
 {
 	int delay = 2 * 1000;
 	while (true)
@@ -76,19 +84,46 @@ void web_task(void *parameter)
 	}
 }
 
-// TODO mqtt heartbeat task
-// TODO new sensor logic ->
+// restarts mcu after given time
+void restart_task(void *parameter)
+{
+	unsigned long delay = RESTART_AFTER * 60 * 60 * 1000;
+	while (true)
+	{
+		vTaskDelay(pdMS_TO_TICKS(delay));
+		reboot(String(RESTART_AFTER) + " hour restart timeout reached");
+	}
+}
 
-/*
-	measure every 1 second
-	after 5s: 
-		if any measurement is over allowed max -> halt
-		if there is no data after filter -> return last valid avg
-		filter out invalid data
-		if there is no new data after 1 mintues -> halt
-		create avg 
-		send new avg only to mqtt
-*/ 
+void set_task_handler(TaskHandle_t handle)
+{
+	if (running_tasks < MAX_TASK_HANDLES)
+	{
+		task_handles[running_tasks++] = handle;
+	}
+	else
+	{
+		halt("limit of max tasks reached!");
+	}
+}
+
+void register_task(void (*taskFunction)(void *), String name)
+{
+	uint32_t defaut_stack_size = 10000;
+	TaskHandle_t taskHandle = NULL;
+	xTaskCreate(taskFunction, name.c_str(), defaut_stack_size, NULL, 1, &taskHandle);
+	set_task_handler(taskHandle);
+	logprint("registered task " + name);
+}
+
+void stop_all_tasks() {
+    for (int i = 0; i < running_tasks; i++) {
+        if (task_handles[i] != NULL) {
+            vTaskDelete(task_handles[i]);
+            task_handles[i] = NULL;
+        }
+    }
+}
 
 void setup()
 {
@@ -100,10 +135,10 @@ void setup()
 	sensors_init();
 	web_init();
 
-	//xTaskCreate(memory_task, "memory_task", 10000, NULL, 1, NULL);
-	xTaskCreate(network_task, "network_task", 10000, NULL, 1, NULL);
-	xTaskCreate(web_task, "web_task", 10000, NULL, 1, NULL);
-	xTaskCreate(autopilot_task, "autopilot_task", 10000, NULL, 1, NULL);
+	register_task(reporting_task, "reporting_task");
+	register_task(network_task, "network_task");
+	register_task(web_update_task, "web_update_task");
+	register_task(autopilot_task, "autopilot_task");
 }
 
 void loop()
