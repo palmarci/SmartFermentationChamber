@@ -1,11 +1,8 @@
 #include <Arduino.h>
 #include "config.h"
 #include "utils.h"
+#include "nvm.h"
 
-/*
-	these must be accessed via functions, so there is
-	a possibility to add checks and debug prints later on
-*/
 bool heater_state;
 bool humidifier_state;
 bool autopilot_state;
@@ -74,8 +71,10 @@ void control_init()
 	pinMode(LED_PIN, OUTPUT);
 	pinMode(RELAY_PIN_HEATER, OUTPUT);
 	pinMode(RELAY_PIN_HUMIDIFIER, OUTPUT);
-	set_target_hum(TARGET_HUMIDITY);
-	set_target_temp(TARGET_TEMP);
+	String hum_str = nvm_read_string(NVM_TARGET_HUM);
+	String temp_str = nvm_read_string(NVM_TARGET_TEMP);
+	set_target_hum(hum_str.toFloat());
+	set_target_temp(temp_str.toFloat());
 	set_heater(false);
 	set_humidifer(false);
 	set_autopilot(true);

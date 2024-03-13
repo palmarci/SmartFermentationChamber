@@ -27,6 +27,8 @@
 #define NVM_WIFI_PW "WIFI_PW"
 #define NVM_MQTT_IP "MQTT_IP"
 #define NVM_MQTT_PORT "MQTT_PORT"
+#define NVM_TARGET_TEMP "NVM_TARGET_TEMP"
+#define NVM_TARGET_HUM "NVM_TARGET_HUM"
 
 // IDENTIFICATION
 #define HOSTNAME "FermControl"
@@ -35,8 +37,8 @@
 // SENSORS
 #define INVALID_MINIMUM_TEMP 0
 #define INVALID_MAX_TEMP 80
-#define TARGET_HUMIDITY 80
-#define TARGET_TEMP 60
+#define DEFAULT_TARGET_HUMIDITY 80
+#define DEFAULT_TARGET_TEMP 60
 #define SENSOR_MEASUREMENT_TIMEOUT 30 //seconds
 
 // SYSTEM
@@ -45,6 +47,7 @@
 #define LOG_PANIC 3
 #define MAX_TASK_HANDLES 10
 #define RESTART_AFTER 24 // hours
+#define VERSION "Build " + String(__TIMESTAMP__)
 
 // #define TELEGRAM_BOT_TOKEN "***REMOVED***"
 // #define TELEGRAM_CHAT_ID "***REMOVED***"

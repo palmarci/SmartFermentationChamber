@@ -31,9 +31,12 @@ bool nvm_validate_stored_config() {
 	String stored_pw = nvm_read_string(NVM_WIFI_PW);
 	String stored_ip = nvm_read_string(NVM_MQTT_IP);
 	String stored_port = nvm_read_string(NVM_MQTT_PORT);
-	
-	if (stored_ssid == "" || stored_pw == "" || \
-		stored_ip == "" || stored_port == "") {
+	String stored_temp = nvm_read_string(NVM_TARGET_TEMP);
+	String stored_hum = nvm_read_string(NVM_TARGET_HUM);
+
+	if (stored_ssid == "" || stored_pw == ""   || \
+		stored_ip == ""   || stored_port == "" || \ 
+		stored_hum == ""  || stored_hum == "" ) {
 			logprint("cannot read config from nvm");
 			return false;
 		} 
@@ -47,6 +50,8 @@ void nvm_set_defaults() {
 	nvm_write_string(NVM_WIFI_PW, WIFI_DEFAULT_PW);
 	nvm_write_string(NVM_WIFI_SSID, WIFI_DEFAULT_SSID);
 	nvm_write_string(NVM_MQTT_IP, MQTT_DEFAULT_IP);
+	nvm_write_string(NVM_TARGET_TEMP, String(DEFAULT_TARGET_TEMP));
+	nvm_write_string(NVM_TARGET_HUM, String(DEFAULT_TARGET_HUMIDITY));
 	int port = MQTT_DEFAULT_PORT;
 	String port_string = String(port);
 	nvm_write_string(NVM_MQTT_PORT, port_string);

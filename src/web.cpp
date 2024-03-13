@@ -6,6 +6,8 @@
 #include "utils.h"
 #include "control.h"
 #include "sensors.h"
+#include "nvm.h"
+#include "network.h"
 
 uint16_t humidifier_control;
 uint16_t heater_control;
@@ -15,9 +17,17 @@ uint16_t target_hum_control;
 uint16_t autopilot_control;
 uint16_t reboot_control;
 uint16_t wifi_ssid_control;
-uint16_t wifi_pass_control;
+uint16_t wifi_pw_control;
 uint16_t ferm_tab;
 uint16_t settings_tab;
+uint16_t mqtt_address_control;
+uint16_t mqtt_port_control;
+uint16_t save_config_control;
+
+String mqtt_address_buffer = "";
+String mqtt_port_buffer = "";
+String wifi_ssid_buffer = "";
+String wifi_pw_buffer = "";
 
 void general_callback(Control *sender, int type)
 {
@@ -36,12 +46,13 @@ void general_callback(Control *sender, int type)
 		bool new_state = sender->value == "1";
 		set_heater(new_state);
 	}
-
+	// TODO better user input handling (also for mqtt & wifi settings)
 	if (sender->id == target_hum_control)
 	{
 		float new_hum = sender->value.toFloat();
-		if (!validate_hum_range(new_hum)) {
-			halt("out of range humity was read from user: " + String(new_hum));
+		if (!validate_hum_range(new_hum))
+		{
+			reboot("out of range humity was read from user: " + String(new_hum));
 		}
 		set_target_hum(new_hum);
 	}
@@ -49,8 +60,9 @@ void general_callback(Control *sender, int type)
 	if (sender->id == target_temp_control)
 	{
 		float new_temp = sender->value.toFloat();
-		if (!validate_temp_range(new_temp)) {
-			halt("out of range temperature was read from user: " + String(new_temp));
+		if (!validate_temp_range(new_temp))
+		{
+			reboot("out of range temperature was read from user: " + String(new_temp));
 		}
 		set_target_temp(new_temp);
 	}
@@ -64,6 +76,27 @@ void general_callback(Control *sender, int type)
 	if (sender->id == reboot_control)
 	{
 		reboot("reboot called from web ui");
+	}
+
+	if (sender->id == mqtt_address_control || sender->id == mqtt_port_control ||
+		sender->id == wifi_ssid_control || sender->id == wifi_pw_control)
+	{
+
+		mqtt_address_buffer = ESPUI.getControl(mqtt_address_control)->value;
+		mqtt_port_buffer = ESPUI.getControl(mqtt_port_control)->value;
+		wifi_ssid_buffer = ESPUI.getControl(wifi_ssid_control)->value;
+		wifi_pw_buffer = ESPUI.getControl(wifi_pw_control)->value;
+	}
+
+	if (sender->id == save_config_control) {
+		nvm_write_string(NVM_MQTT_IP, mqtt_address_buffer);
+		nvm_write_string(NVM_MQTT_PORT, mqtt_port_buffer);
+		nvm_write_string(NVM_WIFI_SSID, wifi_ssid_buffer);
+		nvm_write_string(NVM_WIFI_PW, wifi_pw_buffer);
+		nvm_write_string(NVM_TARGET_TEMP, String(get_target_temp()));
+		nvm_write_string(NVM_TARGET_HUM, String(get_target_hum()));
+		wifi_init();
+		mqtt_init();
 	}
 
 	web_update();
@@ -101,18 +134,16 @@ void web_init()
 
 	// config tab
 	settings_tab = ESPUI.addControl(Tab, "settings_tab", "Settings");
-	wifi_ssid_control = ESPUI.addControl(Text, "SSID", "", Alizarin, settings_tab, general_callback);
+	//ESPUI.addControl(Label, "Note", "Please press enter in the textboxes before clicking on save!", Emerald, settings_tab, general_callback);
+	wifi_ssid_control = ESPUI.addControl(Text, "Wifi SSID", "", Alizarin, settings_tab, general_callback);
+	wifi_pw_control = ESPUI.addControl(Text, "Wifi Password", "", Alizarin, settings_tab, general_callback);
+	mqtt_address_control = ESPUI.addControl(Text, "MQTT IP", "", Alizarin, settings_tab, general_callback);
+	mqtt_port_control = ESPUI.addControl(Number, "MQTT Port", String(MQTT_DEFAULT_PORT), Alizarin, settings_tab, general_callback);
 	reboot_control = ESPUI.addControl(Button, "Restart", "Restart", Peterriver, settings_tab, general_callback);
-	wifi_pass_control = ESPUI.addControl(Text, "Password", "", Alizarin, settings_tab, general_callback);
+	ESPUI.addControl(Label, "Version", VERSION, Emerald, settings_tab, general_callback);
+	save_config_control = ESPUI.addControl(Button, "Save", "Save", Peterriver, settings_tab, general_callback);
 
-	//TODO order
-	//TODO add mqtt settings
-	ESPUI.addControl(Max, "", "64", None, wifi_pass_control);
-	ESPUI.addControl(Button, "Save Wifi", "Save Wifi", Peterriver, settings_tab, general_callback);
-	ESPUI.addControl(Max, "", "32", None, wifi_ssid_control);
-	ESPUI.addControl(Label, "Note", "Please press enter in the textboxes before clicking on save!", Emerald, settings_tab, general_callback);
-
-	ESPUI.begin(HOSTNAME); // TODO i cant seem to set this dynamically (or at least with numbers in it)
+	ESPUI.begin(HOSTNAME);
 
 	web_update();
 }
