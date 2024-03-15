@@ -23,6 +23,8 @@ void reporting_task(void *parameter)
 	int delay = 60 * 1000;
 	while (true)
 	{
+		vTaskDelay(pdMS_TO_TICKS(delay));
+
 		uint32_t freeHeapBytes = heap_caps_get_free_size(MALLOC_CAP_DEFAULT);
 		uint32_t totalHeapBytes = heap_caps_get_total_size(MALLOC_CAP_DEFAULT);
 		float percentageHeapFree = freeHeapBytes * 100.0f / (float)totalHeapBytes;
@@ -32,7 +34,6 @@ void reporting_task(void *parameter)
 		logprint(tasks_text);
 		logprint(mem_text);
 		mqtt_send(MQTT_HEARTBEAT_TOPIC, "hello");
-		vTaskDelay(pdMS_TO_TICKS(delay));
 	}
 }
 
@@ -42,6 +43,7 @@ void network_task(void *parameter)
 	int delay = 20 * 1000;
 	while (true)
 	{
+		vTaskDelay(pdMS_TO_TICKS(delay));
 		if (!wifi_connected())
 		{
 			wifi_init();
@@ -51,7 +53,6 @@ void network_task(void *parameter)
 			mqtt_init();
 		}
 		logprint("network checks done");
-		vTaskDelay(pdMS_TO_TICKS(delay));
 	}
 }
 
@@ -61,6 +62,8 @@ void autopilot_task(void *parameter)
 	int delay = 5 * 1000;
 	while (true)
 	{
+		vTaskDelay(pdMS_TO_TICKS(delay));
+
 		if (get_autopilot_state())
 		{
 			if (get_food_temp() < get_target_temp())
@@ -81,7 +84,6 @@ void autopilot_task(void *parameter)
 				set_humidifer(false);
 			}
 		}
-		vTaskDelay(pdMS_TO_TICKS(delay));
 	}
 }
 
@@ -91,8 +93,9 @@ void web_update_task(void *parameter)
 	int delay = 2 * 1000;
 	while (true)
 	{
-		web_update();
 		vTaskDelay(pdMS_TO_TICKS(delay));
+
+		web_update();
 	}
 }
 
@@ -140,13 +143,15 @@ void stop_all_tasks()
 	}
 }
 
-void disable_brownout() {
+void disable_brownout()
+{
 	WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0);
 }
 
 void setup()
 {
-	if (DISABLE_BROWNOUT) {
+	if (DISABLE_BROWNOUT)
+	{
 		disable_brownout();
 	}
 	Serial.begin(115200);

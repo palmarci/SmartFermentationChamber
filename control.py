@@ -12,22 +12,22 @@ meas_topic = "measurement"
 log_topic = "log"
 heartbeat_topic = "heartbeat"
 
-last_heartbeat = None
+last_msg_time = None
 heartbeat_timeout = 70 # seconds
 
-def do_heartbeat_checks():
+def is_alive():
 	do_print("starting heartbeat thread")
 
 	while True:
 		sleep(1)
-		if last_heartbeat == None:
+		if last_msg_time == None:
 			continue # a device did not connect yet, skip
 		
 		current_time = datetime.now()
-		difference = current_time - last_heartbeat
+		difference = current_time - last_msg_time
 
 		if difference > timedelta(seconds=heartbeat_timeout):
-			do_print("DEVICE HEARTBEAT WAS NOT RECEIVED, CONSIEDERING IT DEAD")
+			do_print("DEVICE SEEMS TO BE DEAD")
 			# TODO notify & restart it (?)
 		
 def do_print(text):
@@ -35,9 +35,10 @@ def do_print(text):
 	print(f"{date_str}: {text}")
 
 def on_message(client, userdata, message):
-	global last_heartbeat
+	global last_msg_time
 	data = message.payload.decode()
 	topic = message.topic
+	last_msg_time = datetime.now()
 
 	if meas_topic in topic:
 		sensor = topic.split("/")[-1]
@@ -46,12 +47,11 @@ def on_message(client, userdata, message):
 	elif log_topic in topic:
 		do_print(data)
 	elif heartbeat_topic in topic:
-		last_heartbeat = datetime.now()
 		do_print("got heartbeat")
 
 def main():
 
-	heartbeat_thread = Thread(target=do_heartbeat_checks)
+	heartbeat_thread = Thread(target=is_alive)
 	heartbeat_thread.start()
 
 	client = mqtt.Client()

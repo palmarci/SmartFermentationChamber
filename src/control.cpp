@@ -33,15 +33,23 @@ void set_target_temp(float val)
 
 void set_heater(bool state)
 {
-	heater_state = state;
 	logprint("setting heater to " + String(state));
+	heater_state = state;
+	if (INVERT_RELAYS)
+	{
+		state = !state;
+	}
 	digitalWrite(RELAY_PIN_HEATER, state);
 }
 
 void set_humidifer(bool state)
 {
-	humidifier_state = state;
 	logprint("setting humidifier to " + String(state));
+	humidifier_state = state;
+	if (INVERT_RELAYS)
+	{
+		state = !state;
+	}
 	digitalWrite(RELAY_PIN_HUMIDIFIER, state);
 }
 
