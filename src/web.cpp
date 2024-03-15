@@ -96,8 +96,10 @@ void general_callback(Control *sender, int type)
 		nvm_write_string(NVM_WIFI_PW, wifi_pw_buffer);
 		nvm_write_string(NVM_TARGET_TEMP, String(get_target_temp()));
 		nvm_write_string(NVM_TARGET_HUM, String(get_target_hum()));
-		wifi_init();
-		mqtt_init();
+		reboot("save was called from web ui"); 
+		//TODO fix crash when saving & restarting wifi: ui still uses the tcp connection -> crash
+		//wifi_init();
+		//mqtt_init();
 	}
 
 	web_update();

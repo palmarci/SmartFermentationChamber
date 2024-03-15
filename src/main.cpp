@@ -11,6 +11,9 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 
+#include "soc/soc.h"
+#include "soc/rtc_cntl_reg.h"
+
 TaskHandle_t task_handles[MAX_TASK_HANDLES] = {NULL};
 int running_tasks = 0;
 
@@ -28,7 +31,7 @@ void reporting_task(void *parameter)
 		String tasks_text = "currently running tasks: " + String(running_tasks);
 		logprint(tasks_text);
 		logprint(mem_text);
-		mqtt_send("heartbeat", "hello");
+		mqtt_send(MQTT_HEARTBEAT_TOPIC, "hello");
 		vTaskDelay(pdMS_TO_TICKS(delay));
 	}
 }
@@ -36,17 +39,18 @@ void reporting_task(void *parameter)
 // monitors & reconnects to wifi and mqtt
 void network_task(void *parameter)
 {
-	int delay = 30 * 1000;
+	int delay = 20 * 1000;
 	while (true)
 	{
 		if (!wifi_connected())
 		{
 			wifi_init();
 		}
-		if (!mqtt_connected)
+		if (!mqtt_connected())
 		{
 			mqtt_init();
 		}
+		logprint("network checks done");
 		vTaskDelay(pdMS_TO_TICKS(delay));
 	}
 }
@@ -136,8 +140,15 @@ void stop_all_tasks()
 	}
 }
 
+void disable_brownout() {
+	WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0);
+}
+
 void setup()
 {
+	if (DISABLE_BROWNOUT) {
+		disable_brownout();
+	}
 	Serial.begin(115200);
 	nvm_init();
 	control_init();

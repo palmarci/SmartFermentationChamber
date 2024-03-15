@@ -8,6 +8,7 @@
 #include "sensors.h"
 #include "utils.h"
 #include "config.h"
+#include "network.h"
 
 OneWire onewire_bus(ONEWIRE_BUS_PIN);
 DallasTemperature dallas_sensors(&onewire_bus);
@@ -56,7 +57,7 @@ bool bme_check_alive()
 void check_sensor_timeout(unsigned long last_valid)
 {
 	unsigned long now = millis();
-	unsigned long limit = last_valid + (SENSOR_MEASUREMENT_TIMEOUT * 1000);
+	unsigned long limit = last_valid + (SENSOR_MEASUREMENT_TOPIC_TIMEOUT * 1000);
 	if (limit < now)
 	{
 		halt("could not read data from sensor for more than the set timeout");
@@ -80,7 +81,8 @@ float get_humidity()
 	}
 	last_hum = hum;
 	last_hum_valid = millis();
-	logprint("read humditiy=" + String(last_hum));
+	//logprint("read humditiy=" + String(last_hum));
+	mqtt_send(String(MQTT_MEASUREMENT_TOPIC) + "/humidity", String(last_hum));
 	return last_hum;
 }
 
@@ -102,7 +104,8 @@ float get_air_temp()
 	}
 	last_air_temp = temp;
 	last_air_temp_valid = millis();
-	logprint("read air temp=" + String(last_air_temp));
+	//logprint("read air temp=" + String(last_air_temp));
+	mqtt_send(String(MQTT_MEASUREMENT_TOPIC) + "/air_temp", String(last_air_temp));
 	return last_air_temp;
 }
 
@@ -125,7 +128,8 @@ float get_food_temp()
 	}
 	last_food_temp = temp;
 	last_food_temp_valid = millis();
-	logprint("read food temp=" + String(last_food_temp));
+	//logprint("read food temp=" + String(last_food_temp));
+	mqtt_send(String(MQTT_MEASUREMENT_TOPIC) + "/food_temp", String(last_food_temp));
 	return last_food_temp;
 }
 

@@ -15,14 +15,19 @@ void mqtt_init()
 	String stored_ip = nvm_read_string(NVM_MQTT_IP);
 	String stored_port = nvm_read_string(NVM_MQTT_PORT);
 	mqtt_connect(stored_ip, stored_port.toInt());
+	if (mqtt_connected()) { // handled inside logprint functions
+		logprint("mqtt connected! hello");
+	} else {
+		logprint("mqtt connection failed :(");
+	}
 }
 
 bool mqtt_connected()
 {
 	bool state = mqtt_client.connected();
 	// cant use logprint here due to infinite loop
-	// String text = "mqtt currently connected?" + String(state);
-	// Serial.println(text);
+	//String text = "mqtt currently connected? " + String(state);
+	//Serial.println(text);
 	return state;
 }
 
@@ -54,7 +59,7 @@ bool wifi_connected()
 {
 	// TODO whats the status in AP mode?
 	bool status = (WiFi.status() == WL_CONNECTED);
-	logprint("wifi is connected? " + String(status) + " ");
+	Serial.println("wifi is connected? " + String(status) + " ");
 	return status;
 }
 

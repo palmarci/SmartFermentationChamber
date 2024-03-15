@@ -79,5 +79,5 @@ void control_init()
 	set_target_temp(temp_str.toFloat());
 	set_heater(false);
 	set_humidifer(false);
-	set_autopilot(true);
+	set_autopilot(DEFAULT_AUTOPILOT_ENABLED);
 }

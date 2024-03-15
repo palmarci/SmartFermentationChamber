@@ -4,8 +4,9 @@
 #include <Arduino.h>
 
 // PINS
+// https://randomnerdtutorials.com/esp32-pinout-reference-gpios/
 #define LED_PIN 2 // builtin
-#define ONEWIRE_BUS_PIN 14
+#define ONEWIRE_BUS_PIN 33
 #define BME_I2C_SDA_PIN 32
 #define BME_I2C_SCL_PIN 25
 #define RELAY_PIN_HEATER 13
@@ -21,6 +22,8 @@
 #define MQTT_DEFAULT_IP "192.168.1.100"
 #define MQTT_DEFAULT_PORT 1883
 #define MQTT_LOG_TOPIC "log"
+#define MQTT_MEASUREMENT_TOPIC "measurement"
+#define MQTT_HEARTBEAT_TOPIC "heartbeat"
 
 // NVM KEY VALUES
 #define NVM_WIFI_SSID "WIFI_SSID"
@@ -35,18 +38,19 @@
 #define INVALID_MAX_TEMP 80
 #define DEFAULT_TARGET_HUMIDITY 80
 #define DEFAULT_TARGET_TEMP 60
-#define SENSOR_MEASUREMENT_TIMEOUT 30 //seconds
+#define SENSOR_MEASUREMENT_TOPIC_TIMEOUT 30 //seconds
 
 // SYSTEM
 #define HOSTNAME "FermControl"
+#define MAX_TASK_HANDLES 10
+#define RESTART_AFTER 24 // hours
+#define DEFAULT_AUTOPILOT_ENABLED false 
+#define DISABLE_BROWNOUT true // for debugging, my pc's usb port voltage dips below 5v :(
+
+// MACROS
 #define LOG_DEBUG 1
 #define LOG_WARNING 2
 #define LOG_PANIC 3
-#define MAX_TASK_HANDLES 10
-#define RESTART_AFTER 24 // hours
 #define VERSION "Build " + String(__DATE__) + " " + String(__TIME__)
-
-// #define TELEGRAM_BOT_TOKEN "***REMOVED***"
-// #define TELEGRAM_CHAT_ID "***REMOVED***"
 
 #endif /* CONFIG */
