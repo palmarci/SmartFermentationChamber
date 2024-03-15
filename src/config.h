@@ -2,7 +2,6 @@
 #define CONFIG
 
 #include <Arduino.h>
-#include "secret.h"
 
 // PINS
 // https://randomnerdtutorials.com/esp32-pinout-reference-gpios/
@@ -19,6 +18,8 @@
 #define WIFI_AP_DEFAULT_IP "192.168.1.1"
 #define WIFI_CONNECT_TIMEOUT 15
 #define WIFI_AP_MODE_FORCE 0
+#define WIFI_DEFAULT_SSID "ReplaceMeSSID"
+#define WIFI_DEFAULT_PW "ReplaceMePass"
 
 #define MQTT_DEFAULT_IP "192.168.1.100"
 #define MQTT_DEFAULT_PORT 1883
