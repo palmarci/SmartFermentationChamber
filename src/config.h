@@ -18,8 +18,8 @@
 #define WIFI_AP_DEFAULT_IP "192.168.1.1"
 #define WIFI_CONNECT_TIMEOUT 15
 #define WIFI_AP_MODE_FORCE 0
-#define WIFI_DEFAULT_SSID "ReplaceMeSSID"
-#define WIFI_DEFAULT_PW "ReplaceMePass"
+#define WIFI_DEFAULT_SSID "MyWifi"
+#define WIFI_DEFAULT_PW "MyPassword"
 
 #define MQTT_DEFAULT_IP "192.168.1.100"
 #define MQTT_DEFAULT_PORT 1883
@@ -46,7 +46,7 @@
 #define HOSTNAME "FermControl"
 #define MAX_TASK_HANDLES 10
 #define RESTART_AFTER 24 // hours
-#define DEFAULT_AUTOPILOT_ENABLED false 
+#define AUTOPILOT_ENABLED_AT_STARTUP true 
 #define DISABLE_BROWNOUT true // for debugging, my pc's usb port voltage dips below 5v :(
 
 // MACROS

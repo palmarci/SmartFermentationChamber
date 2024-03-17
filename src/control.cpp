@@ -64,17 +64,6 @@ bool get_humidifer_state()
 	return humidifier_state;
 }
 
-void set_autopilot(bool state)
-{
-	logprint("setting autopilot to " + String(state));
-	if (autopilot_state)
-	{
-		logprint("autopilot was just enabled, running logic...");
-		autopilot_logic();
-	}
-	autopilot_state = state;
-}
-
 bool get_autopilot_state()
 {
 	return autopilot_state;
@@ -102,6 +91,17 @@ void autopilot_logic()
 	}
 }
 
+void set_autopilot(bool state)
+{
+	logprint("setting autopilot to " + String(state));
+	autopilot_state = state;
+	if (autopilot_state)
+	{
+		logprint("autopilot was just enabled, running logic...");
+		autopilot_logic();
+	}
+}
+
 void control_init()
 {
 	pinMode(LED_PIN, OUTPUT);
@@ -115,5 +115,5 @@ void control_init()
 	set_target_temp(temp_str.toFloat());
 	set_heater(false);
 	set_humidifer(false);
-	set_autopilot(DEFAULT_AUTOPILOT_ENABLED);
+	set_autopilot(AUTOPILOT_ENABLED_AT_STARTUP);
 }
