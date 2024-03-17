@@ -2,6 +2,7 @@
 #include "config.h"
 #include "utils.h"
 #include "nvm.h"
+#include "sensors.h"
 
 bool heater_state;
 bool humidifier_state;
@@ -66,12 +67,39 @@ bool get_humidifer_state()
 void set_autopilot(bool state)
 {
 	logprint("setting autopilot to " + String(state));
+	if (autopilot_state)
+	{
+		logprint("autopilot was just enabled, running logic...");
+		autopilot_logic();
+	}
 	autopilot_state = state;
 }
 
 bool get_autopilot_state()
 {
 	return autopilot_state;
+}
+
+void autopilot_logic()
+{
+
+	if (get_food_temp() < get_target_temp())
+	{
+		set_heater(true);
+	}
+	else
+	{
+		set_heater(false);
+	}
+
+	if (get_humidity() < get_target_hum())
+	{
+		set_humidifer(true);
+	}
+	else
+	{
+		set_humidifer(false);
+	}
 }
 
 void control_init()

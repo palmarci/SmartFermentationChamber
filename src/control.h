@@ -12,5 +12,6 @@ float get_target_temp();
 float get_target_hum();
 void set_target_hum(float val); 
 void set_target_temp(float val);
+void autopilot_logic();
 
 #endif /* CONTROL */

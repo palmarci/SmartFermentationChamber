@@ -59,30 +59,13 @@ void network_task(void *parameter)
 // handles the auto switching of relays based on sensor data
 void autopilot_task(void *parameter)
 {
-	int delay = 5 * 1000;
+	int delay = 15 * 1000;
 	while (true)
 	{
 		vTaskDelay(pdMS_TO_TICKS(delay));
-
 		if (get_autopilot_state())
 		{
-			if (get_food_temp() < get_target_temp())
-			{
-				set_heater(true);
-			}
-			else
-			{
-				set_heater(false);
-			}
-
-			if (get_humidity() < get_target_hum())
-			{
-				set_humidifer(true);
-			}
-			else
-			{
-				set_humidifer(false);
-			}
+			autopilot_logic();
 		}
 	}
 }
@@ -94,7 +77,6 @@ void web_update_task(void *parameter)
 	while (true)
 	{
 		vTaskDelay(pdMS_TO_TICKS(delay));
-
 		web_update();
 	}
 }
