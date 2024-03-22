@@ -3,6 +3,8 @@
 #include "utils.h"
 #include "nvm.h"
 #include "sensors.h"
+#include "tasks.h"
+#include "control.h"
 
 bool heater_state;
 bool humidifier_state;
@@ -10,6 +12,8 @@ bool autopilot_state;
 float target_temp;
 float target_hum;
 
+bool humidifer_helper_do = false;
+ 
 float get_target_temp()
 {
 	return target_temp;
@@ -47,6 +51,11 @@ void set_humidifer(bool state)
 {
 	logprint("setting humidifier to " + String(state));
 	humidifier_state = state;
+
+	if (state) {
+		humidifer_helper_do = true;
+	}
+
 	if (INVERT_RELAYS)
 	{
 		state = !state;
@@ -107,6 +116,8 @@ void control_init()
 	pinMode(LED_PIN, OUTPUT);
 	pinMode(RELAY_PIN_HEATER, OUTPUT);
 	pinMode(RELAY_PIN_HUMIDIFIER, OUTPUT);
+	pinMode(HUMIDIFER_PUSH_GATE, OUTPUT);
+	digitalWrite(HUMIDIFER_PUSH_GATE, false);
 	String hum_str = nvm_read_string(NVM_TARGET_HUM);
 	String temp_str = nvm_read_string(NVM_TARGET_TEMP);
 	logprint("read target hum from nvm: " + hum_str);

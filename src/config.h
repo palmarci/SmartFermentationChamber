@@ -12,6 +12,7 @@
 #define RELAY_PIN_HEATER 13
 #define RELAY_PIN_HUMIDIFIER 27
 #define INVERT_RELAYS true
+#define HUMIDIFER_PUSH_GATE 99 //TODO 
 
 // COMMUNICATION
 #define BME_I2C_ID 0x76
@@ -48,6 +49,7 @@
 #define RESTART_AFTER 24 // hours
 #define AUTOPILOT_ENABLED_AT_STARTUP true 
 #define DISABLE_BROWNOUT true // for debugging, my pc's usb port voltage dips below 5v :(
+#define STACK_SIZE 20000
 
 // MACROS
 #define LOG_DEBUG 1

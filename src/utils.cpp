@@ -7,7 +7,7 @@
 #include "config.h"
 #include "network.h"
 #include "control.h"
-#include "main.h"
+#include "tasks.h"
 
 String log_level_to_string(int level)
 {

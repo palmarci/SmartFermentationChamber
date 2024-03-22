@@ -4,126 +4,11 @@
 #include "network.h"
 #include "sensors.h"
 #include "web.h"
-#include "main.h"
 #include "config.h"
-
-#include <Arduino.h>
-#include <freertos/FreeRTOS.h>
-#include <freertos/task.h>
+#include "tasks.h"
 
 #include "soc/soc.h"
 #include "soc/rtc_cntl_reg.h"
-
-TaskHandle_t task_handles[MAX_TASK_HANDLES] = {NULL};
-int running_tasks = 0;
-
-// reports current status and sends heartbeat on mqtt
-void reporting_task(void *parameter)
-{
-	int delay = 60 * 1000;
-	while (true)
-	{
-		vTaskDelay(pdMS_TO_TICKS(delay));
-
-		uint32_t freeHeapBytes = heap_caps_get_free_size(MALLOC_CAP_DEFAULT);
-		uint32_t totalHeapBytes = heap_caps_get_total_size(MALLOC_CAP_DEFAULT);
-		float percentageHeapFree = freeHeapBytes * 100.0f / (float)totalHeapBytes;
-		String mem_text = "free memory: " + String(percentageHeapFree) + " % free of " +
-						  String(totalHeapBytes / 1000) + "k";
-		String tasks_text = "currently running tasks: " + String(running_tasks);
-		logprint(tasks_text);
-		logprint(mem_text);
-		mqtt_send(MQTT_HEARTBEAT_TOPIC, "hello");
-	}
-}
-
-// monitors & reconnects to wifi and mqtt
-void network_task(void *parameter)
-{
-	int delay = 20 * 1000;
-	while (true)
-	{
-		vTaskDelay(pdMS_TO_TICKS(delay));
-		if (!wifi_connected())
-		{
-			wifi_init();
-		}
-		if (!mqtt_connected())
-		{
-			mqtt_init();
-		}
-		logprint("network checks done");
-	}
-}
-
-// handles the auto switching of relays based on sensor data
-void autopilot_task(void *parameter)
-{
-	int delay = 15 * 1000;
-	while (true)
-	{
-		vTaskDelay(pdMS_TO_TICKS(delay));
-		if (get_autopilot_state())
-		{
-			autopilot_logic();
-		}
-	}
-}
-
-// updates the web interface
-void web_update_task(void *parameter)
-{
-	int delay = 2 * 1000;
-	while (true)
-	{
-		vTaskDelay(pdMS_TO_TICKS(delay));
-		web_update();
-	}
-}
-
-// restarts device after given time
-void restart_task(void *parameter)
-{
-	unsigned long delay = RESTART_AFTER * 60 * 60 * 1000;
-	while (true)
-	{
-		vTaskDelay(pdMS_TO_TICKS(delay));
-		reboot(String(RESTART_AFTER) + " hour restart timeout reached");
-	}
-}
-
-void set_task_handler(TaskHandle_t handle)
-{
-	if (running_tasks < MAX_TASK_HANDLES)
-	{
-		task_handles[running_tasks++] = handle;
-	}
-	else
-	{
-		halt("limit of max tasks reached!");
-	}
-}
-
-void register_task(void (*taskFunction)(void *), String name)
-{
-	uint32_t defaut_stack_size = 20000;
-	TaskHandle_t taskHandle = NULL;
-	xTaskCreate(taskFunction, name.c_str(), defaut_stack_size, NULL, 1, &taskHandle);
-	set_task_handler(taskHandle); // this is local variable, shouldn't this be a problem?
-	logprint("registered task " + name);
-}
-
-void stop_all_tasks()
-{
-	for (int i = 0; i < running_tasks; i++)
-	{
-		if (task_handles[i] != NULL)
-		{
-			vTaskDelete(task_handles[i]);
-			task_handles[i] = NULL;
-		}
-	}
-}
 
 void disable_brownout()
 {
@@ -143,11 +28,8 @@ void setup()
 	mqtt_init();
 	sensors_init();
 	web_init();
+	tasks_init();
 
-	register_task(reporting_task, "reporting_task");
-	register_task(network_task, "network_task");
-	register_task(web_update_task, "web_update_task");
-	register_task(autopilot_task, "autopilot_task");
 }
 
 void loop()

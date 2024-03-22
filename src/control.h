@@ -14,4 +14,6 @@ void set_target_hum(float val);
 void set_target_temp(float val);
 void autopilot_logic();
 
+extern bool humidifer_helper_do;
+
 #endif /* CONTROL */
