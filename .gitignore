@@ -9,3 +9,5 @@ sensor_data.json
 __pycache__
 server.log
 html/*.png
+secrets.py
+secrets.h
