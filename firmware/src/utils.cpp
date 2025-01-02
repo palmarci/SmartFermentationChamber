@@ -43,23 +43,23 @@ String bool_to_str(bool val) // for web ui
 	}
 }
 
-void do_blink(int time_delay)
+void do_blink(int delay_between, int delay_after)
 {
 	digitalWrite(LED_PIN, HIGH);
-	delay(time_delay);
+	delay(delay_between);
 	digitalWrite(LED_PIN, LOW);
-	delay(time_delay);
+	delay(delay_after);
 }
 
-void halt(String reason)
+void halt(String reason, int delay_between, int delay_after)
 {
-	logprint("HALTING! reason: " + reason);
+	logprint("HALTING! reason: " + reason, LOG_PANIC);
 	set_heater(false);
 	set_humidifer(false);
 	stop_all_tasks();
 	while (true)
 	{
-		do_blink(500);
+		do_blink(delay_between, delay_after);
 	}
 }
 
@@ -71,7 +71,7 @@ void reset()
 
 void reboot(String error_message)
 {
-	logprint("REBOOT! reason: " + error_message);
+	logprint("REBOOT! reason: " + error_message, LOG_PANIC);
 	reset();
 }
 
@@ -81,12 +81,12 @@ String remove_leading_slash(String input)
 	int len = input.length();
 
 	// Find the index of the first non-slash character
-	for (i = 0; i < len && input.charAt(i) == '/'; ++i)
-		;
+	for (i = 0; i < len && input.charAt(i) == '/'; ++i);
 
 	// If the first character is not '/', return the original string
-	if (i == 0)
+	if (i == 0) {
 		return input;
+	}
 
 	// Return the substring starting from the first non-slash character
 	return input.substring(i);

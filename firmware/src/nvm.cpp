@@ -20,6 +20,7 @@ void nvm_begin()
 
 void nvm_init()
 {
+	logprint("*** nvm_init ***");
 	nvm_begin();
 	if (!nvm_validate_stored_config())
 	{

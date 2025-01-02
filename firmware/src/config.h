@@ -2,25 +2,24 @@
 #define CONFIG
 
 #include <Arduino.h>
+#include "secrets.h"
 
-// PINS
-// https://randomnerdtutorials.com/esp32-pinout-reference-gpios/
+// PINS - https://randomnerdtutorials.com/esp32-pinout-reference-gpios/
 #define LED_PIN 2 // builtin
-#define ONEWIRE_BUS_PIN 33
+#define ONEWIRE_BUS_PIN 33 // for the Dallas DS18B20
 #define BME_I2C_SDA_PIN 32
 #define BME_I2C_SCL_PIN 25
 #define RELAY_PIN_HEATER 13
 #define RELAY_PIN_HUMIDIFIER 27
 #define INVERT_RELAYS true
-#define HUMIDIFER_PUSH_GATE 99 //TODO 
+//#define HUMIDIFER_PUSH_GATE 23
 
 // COMMUNICATION
+#define SERIAL_SPEED 115200
 #define BME_I2C_ID 0x76
 #define WIFI_AP_DEFAULT_IP "192.168.1.1"
 #define WIFI_CONNECT_TIMEOUT 15
 #define WIFI_AP_MODE_FORCE 0
-#define WIFI_DEFAULT_SSID "MyWifi"
-#define WIFI_DEFAULT_PW "MyPassword"
 
 #define MQTT_DEFAULT_IP "192.168.1.100"
 #define MQTT_DEFAULT_PORT 1883
@@ -41,20 +40,20 @@
 #define INVALID_MAX_TEMP 80
 #define DEFAULT_TARGET_HUMIDITY 80
 #define DEFAULT_TARGET_TEMP 60
-#define SENSOR_MEASUREMENT_TOPIC_TIMEOUT 30 //seconds
+#define SENSOR_MEASUREMENT_TIMEOUT 10 //seconds
 
 // SYSTEM
 #define HOSTNAME "FermControl"
 #define MAX_TASK_HANDLES 10
 #define RESTART_AFTER 24 // hours
 #define AUTOPILOT_ENABLED_AT_STARTUP true 
-#define DISABLE_BROWNOUT true // for debugging, my pc's usb port voltage dips below 5v :(
+#define DISABLE_BROWNOUT false // if usb port voltage dips below 5V
 #define STACK_SIZE 20000
 
 // MACROS
 #define LOG_DEBUG 1
 #define LOG_WARNING 2
 #define LOG_PANIC 3
-#define VERSION "Build " + String(__DATE__) + " " + String(__TIME__)
+#define VERSION ("Build: " + String(__TIME__) + " " + String(__DATE__))
 
 #endif /* CONFIG */

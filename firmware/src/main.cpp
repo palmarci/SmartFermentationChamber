@@ -10,9 +10,25 @@
 #include "soc/soc.h"
 #include "soc/rtc_cntl_reg.h"
 
+#include <LittleFS.h>
+
 void disable_brownout()
 {
 	WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0);
+}
+
+void pin_init() {
+	logprint("*** pin_init ***");
+	pinMode(LED_PIN, OUTPUT);
+	pinMode(RELAY_PIN_HEATER, OUTPUT);
+	pinMode(RELAY_PIN_HUMIDIFIER, OUTPUT);
+	set_heater(false);
+	set_humidifer(false);
+}
+
+void serial_init() {
+	logprint("*** serial_init ***");
+	Serial.begin(SERIAL_SPEED);
 }
 
 void setup()
@@ -21,15 +37,16 @@ void setup()
 	{
 		disable_brownout();
 	}
-	Serial.begin(115200);
+	serial_init();
+	pin_init();
 	nvm_init();
-	control_init();
+	target_values_init();
 	wifi_init();
 	mqtt_init();
 	sensors_init();
 	web_init();
 	tasks_init();
-
+	set_autopilot(AUTOPILOT_ENABLED_AT_STARTUP); //only do this after everything is alive
 }
 
 void loop()

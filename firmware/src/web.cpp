@@ -46,15 +46,19 @@ void general_callback(Control *sender, int type)
 		bool new_state = sender->value == "1";
 		set_heater(new_state);
 	}
+
 	// TODO better user input handling (also for mqtt & wifi settings)
 	if (sender->id == target_hum_control)
 	{
 		float new_hum = sender->value.toFloat();
 		if (!validate_hum_range(new_hum))
 		{
-			reboot("out of range humity was read from user: " + String(new_hum));
+			logprint("out of range humity was read from user: " + String(new_hum), LOG_WARNING);
 		}
-		set_target_hum(new_hum);
+		else
+		{
+			set_target_hum(new_hum);
+		}
 	}
 
 	if (sender->id == target_temp_control)
@@ -62,9 +66,12 @@ void general_callback(Control *sender, int type)
 		float new_temp = sender->value.toFloat();
 		if (!validate_temp_range(new_temp))
 		{
-			reboot("out of range temperature was read from user: " + String(new_temp));
+			logprint("out of range temperature was read from user: " + String(new_temp), LOG_WARNING);
 		}
-		set_target_temp(new_temp);
+		else
+		{
+			set_target_temp(new_temp);
+		}
 	}
 
 	if (sender->id == autopilot_control)
@@ -96,10 +103,10 @@ void general_callback(Control *sender, int type)
 		nvm_write_string(NVM_WIFI_PW, wifi_pw_buffer);
 		nvm_write_string(NVM_TARGET_TEMP, String(get_target_temp()));
 		nvm_write_string(NVM_TARGET_HUM, String(get_target_hum()));
-		reboot("save was called from web ui"); 
-		//TODO fix crash when saving & restarting wifi: ui still uses the tcp connection -> crash
-		//wifi_init();
-		//mqtt_init();
+		// reboot("save was called from web ui");
+		// TODO fix crash when saving & restarting wifi: ui still uses the tcp connection -> crash
+		// wifi_init();
+		// mqtt_init();
 	}
 
 	web_update();
@@ -119,6 +126,7 @@ void web_update()
 
 void web_init()
 {
+	logprint("*** web_init ***");
 	ESPUI.setVerbosity(Verbosity::Quiet);
 	ESPUI.sliderContinuous = true;
 
@@ -141,7 +149,7 @@ void web_init()
 	ESPUI.addControl(Max, "", String(100), None, target_hum_control);
 
 	// config tab
-	settings_tab = ESPUI.addControl(Tab, "settings_tab", "Settings");
+	settings_tab = ESPUI.addControl(Tab, "settings_tab", "Device Settings");
 	wifi_ssid_control = ESPUI.addControl(Text, "Wifi SSID", wifi_ssid_buffer, Alizarin, settings_tab, general_callback);
 	wifi_pw_control = ESPUI.addControl(Text, "Wifi Password", wifi_pw_buffer, Alizarin, settings_tab, general_callback);
 	mqtt_address_control = ESPUI.addControl(Text, "MQTT IP", mqtt_address_buffer, Alizarin, settings_tab, general_callback);

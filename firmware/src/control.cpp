@@ -12,7 +12,7 @@ bool autopilot_state;
 float target_temp;
 float target_hum;
 
-bool humidifer_helper_do = false;
+//bool humidifer_button_fire = false;
  
 float get_target_temp()
 {
@@ -49,18 +49,25 @@ void set_heater(bool state)
 
 void set_humidifer(bool state)
 {
+//	if (humidifier_state && state) {
+//		logprint("skipping humidifer turn on, already turned on");
+//		return;
+//	}
 	logprint("setting humidifier to " + String(state));
 	humidifier_state = state;
 
-	if (state) {
-		humidifer_helper_do = true;
-	}
-
+	// handle relay stuff
 	if (INVERT_RELAYS)
 	{
 		state = !state;
 	}
 	digitalWrite(RELAY_PIN_HUMIDIFIER, state);
+
+//	if (state) {
+		// no need to sleep here for relay closing, helper task takes care of it
+		//humidifer_button_fire = true;
+//	}
+
 }
 
 bool get_heater_state()
@@ -80,8 +87,13 @@ bool get_autopilot_state()
 
 void autopilot_logic()
 {
+	auto target_temp = get_target_temp();
+	auto target_hum = get_target_hum();
+	logprint("Autopilot step: food_temp = " + String(last_food_temp) + ", target_temp=" + \
+	String(target_temp) + ", hum=" + String(last_hum) + ", target_hum=" + String(target_hum));
 
-	if (get_food_temp() < get_target_temp())
+
+	if (last_food_temp < target_temp)
 	{
 		set_heater(true);
 	}
@@ -90,7 +102,7 @@ void autopilot_logic()
 		set_heater(false);
 	}
 
-	if (get_humidity() < get_target_hum())
+	if (last_hum < target_hum)
 	{
 		set_humidifer(true);
 	}
@@ -107,24 +119,20 @@ void set_autopilot(bool state)
 	if (autopilot_state)
 	{
 		logprint("autopilot was just enabled, running logic...");
+		// run it instantly for smoother ui experience
+		// task is constantly running every X seconds, so this is needed here only once
 		autopilot_logic();
 	}
 }
 
-void control_init()
+void target_values_init()
 {
-	pinMode(LED_PIN, OUTPUT);
-	pinMode(RELAY_PIN_HEATER, OUTPUT);
-	pinMode(RELAY_PIN_HUMIDIFIER, OUTPUT);
-	pinMode(HUMIDIFER_PUSH_GATE, OUTPUT);
-	digitalWrite(HUMIDIFER_PUSH_GATE, false);
+	logprint("*** target_values_init ***");
+	// set targets
 	String hum_str = nvm_read_string(NVM_TARGET_HUM);
 	String temp_str = nvm_read_string(NVM_TARGET_TEMP);
-	logprint("read target hum from nvm: " + hum_str);
-	logprint("read target temp from nvm: " + temp_str);
+	//logprint("read target hum from nvm: " + hum_str);
+	//logprint("read target temp from nvm: " + temp_str);
 	set_target_hum(hum_str.toFloat());
 	set_target_temp(temp_str.toFloat());
-	set_heater(false);
-	set_humidifer(false);
-	set_autopilot(AUTOPILOT_ENABLED_AT_STARTUP);
 }

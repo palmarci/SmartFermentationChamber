@@ -12,13 +12,14 @@ PubSubClient mqtt_client(wifi_client);
 
 void mqtt_init()
 {
+	logprint("*** mqtt_init ***");
 	String stored_ip = nvm_read_string(NVM_MQTT_IP);
 	String stored_port = nvm_read_string(NVM_MQTT_PORT);
 	mqtt_connect(stored_ip, stored_port.toInt());
 	if (mqtt_connected()) { // handled inside logprint functions
 		logprint("mqtt connected! hello");
 	} else {
-		logprint("mqtt connection failed :(");
+		logprint("mqtt connection failed :(", LOG_WARNING);
 	}
 }
 
@@ -59,7 +60,7 @@ bool wifi_connected()
 {
 	// TODO whats the status in AP mode?
 	bool status = (WiFi.status() == WL_CONNECTED);
-	Serial.println("wifi is connected? " + String(status) + " ");
+	Serial.println("                 wifi is connected? " + String(status) + " ");
 	return status;
 }
 
@@ -88,6 +89,7 @@ void wifi_create_ap()
 
 void wifi_init()
 {
+	logprint("*** wifi_init ***");
 	WiFi.setHostname(String(HOSTNAME).c_str());
 	if (!WIFI_AP_MODE_FORCE)
 	{
@@ -99,6 +101,8 @@ void wifi_init()
 			return;
 		}
 	}
+
+	// fallback to AP mode
 	logprint("failed to connect to wifi!", LOG_WARNING);
 	wifi_create_ap();
 	WiFi.setSleep(false);

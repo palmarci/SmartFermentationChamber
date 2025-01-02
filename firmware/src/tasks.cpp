@@ -7,32 +7,12 @@
 #include "network.h"
 #include "control.h"
 #include "web.h"
+#include "sensors.h"
 
 TaskHandle_t task_handles[MAX_TASK_HANDLES] = {NULL};
 int running_tasks = 0;
 
-void set_task_handler(TaskHandle_t handle)
-{
-	if (running_tasks < MAX_TASK_HANDLES)
-	{
-		task_handles[running_tasks++] = handle;
-	}
-	else
-	{
-		halt("limit of max tasks reached!");
-	}
-}
-
-void task_start(void (*taskFunction)(void *), String name)
-{
-	uint32_t defaut_stack_size = STACK_SIZE;
-	TaskHandle_t taskHandle = NULL;
-	xTaskCreate(taskFunction, name.c_str(), defaut_stack_size, NULL, 1, &taskHandle);
-	set_task_handler(taskHandle);
-	logprint("started task " + name);
-}
-
-// reports current status and sends heartbeat on mqtt
+// reports mcu memory & task status and sends heartbeat on mqtt
 void reporting_task(void *parameter)
 {
 	int delay = 60 * 1000;
@@ -43,8 +23,7 @@ void reporting_task(void *parameter)
 		uint32_t freeHeapBytes = heap_caps_get_free_size(MALLOC_CAP_DEFAULT);
 		uint32_t totalHeapBytes = heap_caps_get_total_size(MALLOC_CAP_DEFAULT);
 		float percentageHeapFree = freeHeapBytes * 100.0f / (float)totalHeapBytes;
-		String mem_text = "free memory: " + String(percentageHeapFree) + " % free of " +
-						  String(totalHeapBytes / 1000) + "k";
+		String mem_text = "free memory: " + String(percentageHeapFree) + " % free of " + String(totalHeapBytes / 1000) + "k";
 		unsigned int running_tasks = uxTaskGetNumberOfTasks();
 		String tasks_text = "currently running tasks: " + String(running_tasks);
 		logprint(tasks_text);
@@ -72,10 +51,10 @@ void network_task(void *parameter)
 	}
 }
 
-// handles the auto switching of relays based on sensor data
+// handles the auto switching of heater/humidifier based on sensor data
 void autopilot_task(void *parameter)
 {
-	int delay = 15 * 1000;
+	int delay = 5 * 1000;
 	while (true)
 	{
 		vTaskDelay(pdMS_TO_TICKS(delay));
@@ -97,34 +76,67 @@ void web_update_task(void *parameter)
 	}
 }
 
-// restarts device after given time
-void restart_task(void *parameter)
+// restarts mcu after a given time
+void periodic_reset_task(void *parameter)
 {
 	unsigned long delay = RESTART_AFTER * 60 * 60 * 1000;
 	while (true)
 	{
 		vTaskDelay(pdMS_TO_TICKS(delay));
-		reboot(String(RESTART_AFTER) + " hour restart timeout reached");
+		reboot("periodic reset: " + String(RESTART_AFTER) + " hour reached");
 	}
 }
 
-// handle special workaround to "press" humidifer's button
+// handle special workaround to simulate a "press" on the humidifer's button
+/*
 void humdifier_helper_task(void *parameter)
 {
-	int wait_for_init = 2 * 1000; // wait a little for relay to activate & humidifer to initialize
-	int delay = 100;
+	int delay = 0.5 * 1000;
 	while (true)
 	{
-		if (humidifer_helper_do)
+		if (humidifer_button_fire)
 		{
-			vTaskDelay(pdMS_TO_TICKS(wait_for_init));
-			digitalWrite(HUMIDIFER_PUSH_GATE, true);
-			vTaskDelay(pdMS_TO_TICKS(500)); // simulate button press with fet between button pins
-			digitalWrite(HUMIDIFER_PUSH_GATE, false);
-			humidifer_helper_do = false;
+			logprint("starting button push imitation");
+			vTaskDelay(pdMS_TO_TICKS(delay)); // wait a little for relay
+			digitalWrite(HUMIDIFER_PUSH_GATE, false); // close switch's pin to ground with transistor
+			vTaskDelay(pdMS_TO_TICKS(delay)); // simulate button press
+			digitalWrite(HUMIDIFER_PUSH_GATE, true); // pull high
+			humidifer_button_fire = false;
 		}
 		vTaskDelay(pdMS_TO_TICKS(100));
 	}
+}
+*/
+
+// measure sensors
+void sensor_task(void *parameter) {
+	int delay = 3 * 1000;
+	while (true)
+	{
+		measure_sensors();
+		vTaskDelay(pdMS_TO_TICKS(100));
+	}
+}
+
+void set_task_handler(TaskHandle_t handle)
+{
+	if (running_tasks < MAX_TASK_HANDLES)
+	{
+		task_handles[running_tasks++] = handle;
+	}
+	else
+	{
+		halt("limit of max tasks reached!", 500, 500);
+	}
+}
+
+void task_start(void (*taskFunction)(void *), String name)
+{
+	uint32_t defaut_stack_size = STACK_SIZE;
+	TaskHandle_t taskHandle = NULL;
+	xTaskCreate(taskFunction, name.c_str(), defaut_stack_size, NULL, 1, &taskHandle);
+	set_task_handler(taskHandle);
+	logprint("started task " + name);
 }
 
 void stop_all_tasks()
@@ -142,9 +154,12 @@ void stop_all_tasks()
 
 void tasks_init()
 {
+	logprint("*** tasks_init ***");
+	task_start(sensor_task, "sensor_task");
 	task_start(reporting_task, "reporting_task");
 	task_start(network_task, "network_task");
 	task_start(web_update_task, "web_update_task");
 	task_start(autopilot_task, "autopilot_task");
-	task_start(humdifier_helper_task, "humdifier_helper_task");
+	//task_start(humdifier_helper_task, "humdifier_helper_task");
+	task_start(periodic_reset_task, "periodic_reset_task");
 }

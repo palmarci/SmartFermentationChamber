@@ -1,0 +1,7 @@
+#ifndef SECRETS
+#define SECRETS
+
+#define WIFI_DEFAULT_SSID "CHANGE_ME"
+#define WIFI_DEFAULT_PW "CHANGE_ME"
+
+#endif /* SECRETS */
