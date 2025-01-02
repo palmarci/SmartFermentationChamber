@@ -10,12 +10,15 @@ This is a SW + HW + woodworking project to create an insulated chambed with high
 - [Bill of materials](#bill-of-materials)
   - [Main components](#main-components)
   - [PCB parts](#pcb-parts)
-- [Example screenshots](#example-screenshots)
+- [Pictures](#pictures)
+  - [Box](#box)
+  - [Web server graphs](#web-server-graphs)
+  - [ESP web ui](#esp-web-ui)
 
 
 ## Architecture
 
-The devices uses an ESP32 which communicates with a Python controller via MQTT. This controller generates graphs that can be served using a web server, and the ESP itself can be configured using its web-interface which is built around [ESPUI](https://github.com/s00500/ESPUI). The controller can also send real-time alerts to a phone using the Telegram API. There is also an optional 230V dimmer, that can limit the current to the heater, that shall be set according to the size of the heated space itself.
+The ESP32 gathers environmental data through sensors, evaluates it against target values, and manages the heater and humidifiers accordingly. This data is logged to a Python controller via MQTT, which generates graphs viewable through a web server. The ESP32 is configurable via a built-in web interface powered by [ESPUI](https://github.com/s00500/ESPUI). Additionally, the controller can send real-time alerts to a smartphone using the Telegram API. An optional 230V dimmer is available to regulate the heater's current based on the size of the heated space.
 
 <picture>
     <source srcset="doc/architecture_dark.png"  media="(prefers-color-scheme: dark)">
@@ -30,7 +33,7 @@ There is a [bug](https://github.com/lorol/LITTLEFS/pull/56
 
 ## PCB
 
-This is my first design ever, it was manifactured by JLCPCB. Almost everything is auto-routed, so please be nice.
+This is my first-ever PCB design, created in KiCad and manufactured by JLCPCB. Most of the routing was done using the auto-router, so please go easy on me.
 
 <img src="doc/board.jpg">
 
@@ -82,9 +85,15 @@ I ordered my parts from [Hestore](http://hestore.hu), their XML can be found [he
 |3         |5X20-F-3A|Fuse, fusible, glass, fast, 5x20mm, 250V AC, 3A|
 
 
+## Pictures
 
-## Example screenshots
+### Box
+*(before the PCB was created)*
+<img src="doc/box1.png">
+<img src="doc/box2.png">
 
+### Web server graphs
 Graphs<br><img src="doc/graphs.png">
 
-ESP Web UI<br>TODO
+### ESP web ui
+TODO
