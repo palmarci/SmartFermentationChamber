@@ -103,3 +103,5 @@ Graphs<br><img src="doc/graphs.png">
 - architecture.drawio is missing the humidifers and water tank
 - readme should contain that the fw uses platformio
 - missing ESP web ui screenshots
+- remove hestore order, change screw terminals for bigger wire
+- 5V IC packaging needs to be changed in BOM
