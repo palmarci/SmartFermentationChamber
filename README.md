@@ -13,7 +13,8 @@ This is a SW + HW + woodworking project to create an insulated chambed with high
 - [Pictures](#pictures)
   - [Box](#box)
   - [Web server graphs](#web-server-graphs)
-  - [ESP web ui](#esp-web-ui)
+  - [ESP Web UI](#esp-web-ui)
+- [TODO](#todo)
 
 
 ## Architecture
@@ -95,5 +96,10 @@ I ordered my parts from [Hestore](http://hestore.hu), their XML can be found [he
 ### Web server graphs
 Graphs<br><img src="doc/graphs.png">
 
-### ESP web ui
-TODO
+### ESP Web UI
+
+## TODO
+- secrets.py/h files are missing
+- architecture.drawio is missing the humidifers and water tank
+- readme should contain that the fw uses platformio
+- missing ESP web ui screenshots
