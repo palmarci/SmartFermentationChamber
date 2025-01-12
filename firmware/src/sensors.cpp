@@ -55,10 +55,19 @@ void measure_sensors()
 	check_sensor_timeout();
 
 	// humidity
-	float hum = bme_sensor.readHumidity();
-	if (validate_hum_range(hum))
+	float raw_hum = bme_sensor.readHumidity();
+
+	if (validate_hum_range(raw_hum))
 	{
-		last_hum = hum;
+		float last_hum_temp = raw_hum + BME_HUMIDITY_OFFSET; // add offset only after validation, this can in theory hit the limit
+		// clamp it again after offsetting
+		if (last_hum_temp > 100) {
+			last_hum_temp = 100;
+		} 
+		if (last_hum_temp < 0) {
+			last_hum_temp = 0;
+		}
+		last_hum = last_hum_temp; // set it only after clamping, to prevent timing bugs
 		mqtt_send(String(MQTT_MEASUREMENT_TOPIC) + "/humidity", String(last_hum));
 	}
 	else
@@ -68,10 +77,10 @@ void measure_sensors()
 
 	// food temp
 	dallas_sensors.requestTemperatures();
-	float food_temp = dallas_sensors.getTempCByIndex(0);
-	if (validate_temp_range(food_temp))
+	float food_temp_raw = dallas_sensors.getTempCByIndex(0) + DALLAS_TEMP_OFFSET; // no checks here, i trust the user 
+	if (validate_temp_range(food_temp_raw))
 	{
-		last_food_temp = food_temp;
+		last_food_temp = food_temp_raw; 
 		mqtt_send(String(MQTT_MEASUREMENT_TOPIC) + "/food_temp", String(last_food_temp));
 	}
 	else
@@ -80,7 +89,7 @@ void measure_sensors()
 	}
 
 	// air temp
-	float air_temp = bme_sensor.readTemperature();
+	float air_temp = bme_sensor.readTemperature() + BME_TEMP_OFFSET; // also no checks here
 	if (validate_temp_range(air_temp))
 	{
 		last_air_temp = air_temp;
@@ -118,7 +127,7 @@ void init_bme()
 {
 	logprint("initializing bme sensor...");
 	Wire.end();
-	Wire.begin(BME_I2C_SDA_PIN, BME_I2C_SCL_PIN);
+	Wire.begin(I2C_SDA_PIN, I2C_SCL);
 
 	if (!bme_sensor.begin(BME_I2C_ID, &Wire))
 	{

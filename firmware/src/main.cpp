@@ -20,8 +20,8 @@ void disable_brownout()
 void pin_init() {
 	logprint("*** pin_init ***");
 	pinMode(LED_PIN, OUTPUT);
-	pinMode(RELAY_PIN_HEATER, OUTPUT);
-	pinMode(RELAY_PIN_HUMIDIFIER, OUTPUT);
+	pinMode(PIN_HEATER, OUTPUT);
+	pinMode(PIN_HUMIDIFIER, OUTPUT);
 	set_heater(false);
 	set_humidifer(false);
 }

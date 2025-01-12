@@ -40,11 +40,11 @@ void set_heater(bool state)
 {
 	logprint("setting heater to " + String(state));
 	heater_state = state;
-	if (INVERT_RELAYS)
+	if (PIN_HEATER_INVERT)
 	{
 		state = !state;
 	}
-	digitalWrite(RELAY_PIN_HEATER, state);
+	digitalWrite(PIN_HEATER, state);
 }
 
 void set_humidifer(bool state)
@@ -57,11 +57,11 @@ void set_humidifer(bool state)
 	humidifier_state = state;
 
 	// handle relay stuff
-	if (INVERT_RELAYS)
+	if (PIN_HUMIDIFIER_INVERT)
 	{
 		state = !state;
 	}
-	digitalWrite(RELAY_PIN_HUMIDIFIER, state);
+	digitalWrite(PIN_HUMIDIFIER, state);
 
 //	if (state) {
 		// no need to sleep here for relay closing, helper task takes care of it

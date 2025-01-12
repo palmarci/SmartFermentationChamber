@@ -109,3 +109,10 @@ Graphs<br><img src="doc/graphs.png">
   - missing ESP web ui screenshots
 - PCB
   - change ESP board to ESP-WROOM-32-ESP32S
+  - double led resistor values
+  - add diode between 5v and reg ic, feedback pin needs to be appriopriate position
+  - label gnd' to gnd switched
+  - dallas data pullup fix
+  - add PCB holes for mounting
+  - remove non existing 5v ic resistors from BOM
+  - octocoupler goes to 3v3 not 5v (??? untested)
