@@ -179,7 +179,9 @@
       ],
       "track_widths": [
         0.0,
-        1.5
+        1.0,
+        1.5,
+        4.0
       ],
       "tuning_pattern_settings": {
         "diff_pair_defaults": {
@@ -659,10 +661,6 @@
     [
       "a2d60a54-7731-490a-bf99-8ee91cc75f51",
       "Root"
-    ],
-    [
-      "cc179ea3-6db4-498f-ab90-af927d6bd399",
-      "relay shit"
     ]
   ],
   "text_variables": {}

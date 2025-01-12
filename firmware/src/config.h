@@ -53,7 +53,7 @@
 
 
 // ******** SYSTEM ********
-#define HOSTNAME "FermControl"
+#define HOSTNAME "SmartFermentationChamber"
 #define MAX_TASK_HANDLES 10
 #define RESTART_AFTER 24 // hours
 #define AUTOPILOT_ENABLED_AT_STARTUP true 
@@ -64,6 +64,6 @@
 #define LOG_DEBUG 1
 #define LOG_WARNING 2
 #define LOG_PANIC 3
-#define VERSION ("Build " + String(__TIME__) + " " + String(__DATE__))
+#define VERSION ("Build " + String(__DATE__) + " " + String(__TIME__))
 
 #endif /* CONFIG */

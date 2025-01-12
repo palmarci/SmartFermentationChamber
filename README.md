@@ -14,12 +14,11 @@ This is a SW + HW + woodworking project to create an insulated chambed with high
   - [Box](#box)
   - [Web server graphs](#web-server-graphs)
   - [ESP Web UI](#esp-web-ui)
-- [TODOs](#todos)
 
 
 ## Architecture
 
-The ESP32 gathers environmental data through sensors, evaluates it against target values, and manages the heater and humidifiers accordingly. This data is logged to a Python controller via MQTT, which generates graphs viewable through a web server. The ESP32 is configurable via a built-in web interface powered by [ESPUI](https://github.com/s00500/ESPUI). Additionally, the controller can send real-time alerts to a smartphone using the Telegram API. An optional 230V dimmer is available to regulate the heater's current based on the size of the heated space.
+The ESP32 gathers environmental data through sensors, evaluates it against target values, and manages the heater and humidifiers accordingly. This data is logged to a Python controller via MQTT, which generates graphs viewable through a web server. The ESP32 is configurable via a built-in web interface powered by [ESPUI](https://github.com/s00500/ESPUI). Additionally, the controller can send real-time alerts to a smartphone using the Telegram API. An optional 230V dimmer is available to regulate the heater's current based on the size of the heated space (setting is done via a potentiometer externally to the whole control circuit).
 
 <picture>
     <source srcset="doc/architecture_dark.png"  media="(prefers-color-scheme: dark)">
@@ -36,7 +35,7 @@ It is a PlatformIO project. There is a [bug](https://github.com/lorol/LITTLEFS/p
 
 This is my first-ever PCB design, created in KiCad and manufactured by JLCPCB. Most of the routing was done using the auto-router, so please go easy on me. I made some mistakes, most notably I used an incorrect ESP devboard, these were fixed in 2.2, however I have not ordered those.
 
-<img src="doc/board.jpg">
+<img src="doc/pcb.png">
 
 ## Bill of materials
 
@@ -46,9 +45,9 @@ I ordered my parts from [Hestore](http://hestore.hu), if anyone needs to look up
 ### Main components
 |Name  |Link|Price |Description         |
 |----------|-----|----|----------|
-|*220V 300W Incubator heater Insulation-Thermostatic PTC ceramic air heater * | https://www.aliexpress.com/item/1005007503406690.html | 12 euro | You should buy one with a fan, I added one externally!<br> ![alt text](doc/heater.png)|
+|*220V 300W Incubator heater Insulation-Thermostatic PTC ceramic air heater* | https://www.aliexpress.com/item/1005007503406690.html | 12 euro | You should buy one with a fan, I added one externally!<br> ![alt text](doc/heater.png)|
 |*DC 5V Switchable Four Spray Humidifier Module Atomization Control Board DIY Ultrasonic Atomizer* | https://www.aliexpress.com/item/1005007493271175.html | 6 euro | Make sure to order one without a button, which powers on right after voltage is present<br><img src="doc/humidifier_modules.png">|
-| ESP32-WROOM development board | https://www.aliexpress.com/w/wholesale-esp32%2525252dwroom%2525252d32.html | 6 euro | I used USB-C with ESP32-WROOM-32D chip, but I dont think this really matters | 
+| NodeMCU ESP-32S development board | https://www.aliexpress.com/w/wholesale-nodemcu-32s.html | 6 euro | - | 
 | PCB parts | - | 17 euro | *see BOM below* |
 | PCB itself | https://jlcpcb.com/ | 22 euro *(for minimum order of 5 boards)* | I am not providing Gerber files, you will have to check the board/modify it if you need something, and just create the ZIP for yourself in KiCad!
 | Wood + insulation | your local hardware store | max 20 euro | I don't remember the exact price
@@ -64,19 +63,17 @@ I ordered my parts from [Hestore](http://hestore.hu), if anyone needs to look up
 |----------|---------|--------------------|
 |6         |1000 uF / 35V|Capacitor 12.5mm/5mm       |
 |5         |LED 5 mm D-RD|LED                 |
-|2         |1N4007   |Diode               |
-|1         |68 R   |Resistor            |
-|4         |220 R  |Resistor            |
-|2         |680 R  |Resistor            |
-|1         |4,7 K  |Resistor            |
-|1         |10 K   |Resistor            |
-|1         |2SD1207  |NPN transistor      |
+|1         |1N4007   |Diode               |
+|1|	? |4.7k Resistor            |
+|3|	? |220R Resistor            |
+|2|	?| 10k Resistor            |
+|1|	? |1.5k Resistor            |
+|2|	?|500R Resistor            |
+|1         |?   |NPN transistor      |
 |1         |BAT85    |Schottky-diode      |
-|3         |1 K    |Resistor            |
 |3         |ZL262-20SG|Pin header          |
 |1         |IRLZ44NPBF|FET N               |
 |1         |SRD-5VDC-SL-C|Relay, SPDT, 5V DC, 10A / 250V AC|
-|1         |SFH610A-1|Optocoupler         |
 |1         |330uH / 1.2A / 630mR|Inductor            |
 |1         |PTF/78   |Fuse holder, socket, 5x20mm|
 |1         |BS232    |Fuse holder cover   |
@@ -101,16 +98,3 @@ Graphs<br><img src="doc/graphs.png">
 ![alt text](doc/web.png)
 
 ![alt text](doc/web2.png)
-
-## TODOs
-- docs
-  - add new render of PCB after fixing everything
-- PCB
-  - change ESP board to ESP-WROOM-32-ESP32S
-  - double led resistor values
-  - add diode between 5v and reg ic, feedback pin needs to be appriopriate position
-  - label gnd' to gnd switched
-  - dallas data pullup fix
-  - add PCB holes for mounting
-  - remove non existing 5v ic resistors from BOM
-  - octocoupler goes to 3v3 not 5v (??? untested)
