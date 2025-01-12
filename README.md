@@ -28,7 +28,7 @@ The ESP32 gathers environmental data through sensors, evaluates it against targe
 
 ## Firmware
 
-There is a [bug](https://github.com/lorol/LITTLEFS/pull/56
+It is a PlatformIO project. There is a [bug](https://github.com/lorol/LITTLEFS/pull/56
 ) in the external littlefs library, I had to fix it manually to get the FW compiling. The [fix](https://github.com/lorol/LITTLEFS/issues/43#issuecomment-1763347319
 ) is very easy to do.
 
@@ -98,15 +98,13 @@ I ordered my parts from [Hestore](http://hestore.hu), if anyone needs to look up
 Graphs<br><img src="doc/graphs.png">
 
 ### ESP Web UI
-*TODO*
+![alt text](doc/web.png)
+
+![alt text](doc/web2.png)
 
 ## TODOs
-- code
-  - secrets.py/h files are missing
 - docs
-  - architecture.drawio is missing the humidifers and water tank
-  - readme should contain that the FW uses platformio
-  - missing ESP web ui screenshots
+  - add new render of PCB after fixing everything
 - PCB
   - change ESP board to ESP-WROOM-32-ESP32S
   - double led resistor values

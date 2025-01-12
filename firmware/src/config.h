@@ -64,6 +64,6 @@
 #define LOG_DEBUG 1
 #define LOG_WARNING 2
 #define LOG_PANIC 3
-#define VERSION ("Build: " + String(__TIME__) + " " + String(__DATE__))
+#define VERSION ("Build " + String(__TIME__) + " " + String(__DATE__))
 
 #endif /* CONFIG */
