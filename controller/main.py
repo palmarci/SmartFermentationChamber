@@ -5,8 +5,9 @@ import os
 import argparse
 import logging
 import time
-from flask import Flask, send_from_directory
+import threading
 
+from flask import Flask, send_from_directory
 import paho.mqtt.client as mqtt
 
 from telegram import TelegramNotifier
@@ -111,6 +112,8 @@ def configure_logging(is_debug: bool):
 	#logging.getLogger().addHandler(stream_handler)
 	logging.getLogger().addHandler(file_handler)
 
+def run_app():
+	app.run(host='0.0.0.0', port=8080)
 
 def main():
 	global last_alerted, last_graph_generated, messager, measurer, grapher, telegramer
@@ -132,7 +135,8 @@ def main():
 	measurer = MeasurementCollector()
 	grapher = GraphGenerator()
 
-	app.run(host='0.0.0.0', port=8080)
+	flask_thread = threading.Thread(target=run_app, daemon=True)
+	flask_thread.start()
 
 	logging.info("controller started!")
 
@@ -152,6 +156,7 @@ def main():
 
 		# generate a graph if necessary
 		graph_timedelta = (datetime.now() - last_graph_generated).total_seconds()
+
 		if graph_timedelta > config.GRAPH_GENERATION_PERIOD:
 			logging.debug("generating graphs...")
 			graph_data = measurer.get_last_by_hour(config.GRAPH_VISIBLE_HOURS)
