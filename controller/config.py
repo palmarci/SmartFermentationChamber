@@ -1,17 +1,24 @@
+import os
+
+FOLDER_RUNNING_FOLDER = os.path.dirname(os.path.abspath(__file__))
+FOLDER_DATA_FOLDER = os.path.join(FOLDER_RUNNING_FOLDER, "data")
+
 MQTT_ADDRESS = "192.168.1.100"
 MQTT_PORT = 1883
-MQTT_ROOT_TOPIC = "FermControl/"
+MQTT_ROOT_TOPIC = "SmartFermentationChamber/"
 MQTT_MEAS_TOPIC = "measurement"
 MQTT_LOG_TOPIC = "log"
 MQTT_HEARTBEAT_TOPIC = "heartbeat"
 
-TELEGRAM_ALERT_AFTER = 70 # seconds
 TELEGRAM_ENABLED = False
+TELEGRAM_ALERT_AFTER = 70 # seconds
+TELEGRAM_WAIT_BETWEEN_ALERTS = 3600 # seconds
 
+FILE_DATA_OUTPUT = os.path.join(FOLDER_DATA_FOLDER, "sensor_data.json")
+FILE_DEVICE_LOGFILE = os.path.join(FOLDER_DATA_FOLDER, "device.log")
+FILE_DATA_FLUSH_AFTER = 20 # entries
+FILE_DATA_RETENTION_HOURS = 72 
+FILE_CONTROLLER_LOGFILE = os.path.join(FOLDER_DATA_FOLDER, "controller.log")
 
-DATA_OUTPUT_FILE = "sensor_data.json"
-DATA_WRITE_DELAY = 10 # seconds
-
-GRAPH_FILTER_HOURS = 24 # hours
-GRAPH_OUTPUT_FOLDER = "html" # will be one dir higher than the main.py
-GRAPH_GENERATION_DELAY = 300 # seconds
+GRAPH_GENERATION_PERIOD = 30 # seconds
+GRAPH_VISIBLE_HOURS = 12

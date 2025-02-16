@@ -44,8 +44,8 @@
 // ******** SENSORS ********
 #define INVALID_MINIMUM_TEMP 0
 #define INVALID_MAX_TEMP 80
-#define DEFAULT_TARGET_HUMIDITY 80
-#define DEFAULT_TARGET_TEMP 60
+#define DEFAULT_TARGET_HUMIDITY 60
+#define DEFAULT_TARGET_TEMP 40
 #define SENSOR_MEASUREMENT_TIMEOUT 10 //seconds
 #define BME_HUMIDITY_OFFSET 9.0 // these  can be negative
 #define BME_TEMP_OFFSET 0
@@ -54,6 +54,7 @@
 
 // ******** SYSTEM ********
 #define HOSTNAME "SmartFermentationChamber"
+#define NVM_KEY "SFCH"
 #define MAX_TASK_HANDLES 10
 #define RESTART_AFTER 24 // hours
 #define AUTOPILOT_ENABLED_AT_STARTUP true 

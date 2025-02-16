@@ -4,6 +4,9 @@
 #include "config.h"
 #include "utils.h"
 
+#include "nvs_flash.h"
+#include "nvs.h"
+
 Preferences prefs;
 
 String nvm_read_string(String name)
@@ -13,15 +16,21 @@ String nvm_read_string(String name)
 	return res;
 }
 
-void nvm_begin()
+bool nvm_begin()
 {
-	prefs.begin(String(HOSTNAME).c_str(), false);
+	return prefs.begin(String(NVM_KEY).c_str(), false);
 }
 
 void nvm_init()
 {
 	logprint("*** nvm_init ***");
-	nvm_begin();
+	auto nvm_status = nvm_begin();
+	
+	if (!nvm_status) {
+		logprint("nvm_begin() = " + String(nvm_status));
+		reboot("nvm failure");
+	}
+
 	if (!nvm_validate_stored_config())
 	{
 		nvm_set_defaults();
@@ -61,9 +70,15 @@ bool nvm_validate_stored_config()
 
 void nvm_set_defaults()
 {
-	bool success = nvm_clear();
-	nvm_begin();
-	logprint("nvm clearing ok? " + String(success));
+//	bool b_stat = nvm_begin();
+	bool c_stat = nvm_clear();
+	//nvm_begin();
+
+	if (!c_stat) {
+		logprint("nvm clearing FAILED");
+		reboot("nvm failure");
+	}
+
 	nvm_write_string(NVM_WIFI_PW, WIFI_DEFAULT_PW);
 	nvm_write_string(NVM_WIFI_SSID, WIFI_DEFAULT_SSID);
 	nvm_write_string(NVM_MQTT_IP, MQTT_DEFAULT_IP);

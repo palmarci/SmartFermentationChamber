@@ -1,53 +1,164 @@
-from threading import Thread
-from time import sleep
-from data_manager import save_sensor_data, read_sensor_data_last_hours
-from graph_generator import create_all_graphs
-from mqtt_client import init_mqtt_client, is_device_alive
-from telegram_notifier import send_alert
-from config import *
-from secrets import *
-from logger import logger
+from datetime import datetime
 import sys
+from time import sleep
+import os
+import argparse
+import logging
+import time
+from flask import Flask, send_from_directory
 
-is_stopping = False
+import paho.mqtt.client as mqtt
 
-def data_writer_thread():
-	while True:
-		sleep(DATA_WRITE_DELAY)
-		save_sensor_data()
+from telegram import TelegramNotifier
+from measurements import Measurement, MeasurementType, MeasurementCollector
+from graphs import GraphGenerator
 
-def graph_creator_thread():
-	while True:
-		sleep(GRAPH_GENERATION_DELAY)
-		create_all_graphs()
+import my_secrets
+import config
 
-def telegram_alert_thread():
-	while True:
-		sleep(1)
-		if not is_device_alive():
-			send_alert("Device died!, server shutting down!")
-			sys.exit(1)
-		
-def main():
-	global is_stopping
-	logger.info("Starting server...")
-	mqtt_client = init_mqtt_client()
-
-	Thread(target=data_writer_thread, daemon=True).start()
-	Thread(target=graph_creator_thread, daemon=True).start()
-	if TELEGRAM_ENABLED:
-		Thread(target=telegram_alert_thread, daemon=True).start()
-	else:
-		logger.warning("telegram is disabled!")
-
+def message_callback(client, userdata, message):
+	last_msg_time = datetime.now()
+	logging.debug(f"got mqtt msg on {message.topic}")
 	try:
-		while True:
-			sleep(1)
-	except KeyboardInterrupt:
-		if not is_stopping: # ensure user can only press it once
-			is_stopping = True
-			logger.info("stopping...")
-			mqtt_client.loop_stop()
+		msg_type = message.topic.split("/")[-1]
+
+		if config.MQTT_MEAS_TOPIC in message.topic:
+			value = float(message.payload.decode())
+			measurement_type = MeasurementType.from_string(msg_type)
+			measurer.add(Measurement(measurement_type, value, int(time.time())))
+		
+		elif config.MQTT_LOG_TOPIC in message.topic:
+			log_data = message.payload.decode()
+			measurer.write_device_log(log_data)
+		
+		elif config.MQTT_HEARTBEAT_TOPIC in message.topic:
+			logging.info("received heartbeat")
+
+	except ValueError as e:
+		logging.error("Error processing message: %s", e)
+
+class MqttClient():
+	def __init__(self, ip:str, port:int):
+		self.client = mqtt.Client()
+		self.client.on_message = message_callback
+		self.client.connect(ip, port)
+		self.client.subscribe([(config.MQTT_ROOT_TOPIC + config.MQTT_MEAS_TOPIC + "/#", 0), 
+						(config.MQTT_ROOT_TOPIC + config.MQTT_LOG_TOPIC, 0), 
+						(config.MQTT_ROOT_TOPIC + config.MQTT_HEARTBEAT_TOPIC, 0)])
+		self.client.loop_start()
+
+	def is_device_alive(self) -> bool:
+		if last_msg_time is None:
+			return True # xd
+		return datetime.now() - last_msg_time > config.TELEGRAM_ALERT_AFTER
+
+# globals
+is_stopping = False
+last_msg_time = None
+last_graph_generated = datetime.now()
+messager = None
+measurer = None
+grapher = None
+app = Flask(__name__)
+telegramer = None
+
+@app.route('/data/<path:path>')
+def send_report(path):
+    # Using request args for path will expose you to directory traversal attacks
+    return send_from_directory('data', path)
+
+@app.route('/')
+def serve_main_web():
+	html = """
+	<center>
+	<h1>SmartFermentationChamber Controller</h1>
+	<title>SmartFermentationChamber Controller</title>
+	<img id="air_temp_img" src="/data/air_temp.png"><br>
+	<img id="food_temp_img" src="/data/food_temp.png"><br>
+	<img id="humidity_img" src="/data/humidity.png"><br>
+	</center>
+
+	<script>
+		updateImages();
+		
+		function updateImages() {
+			document.getElementById("air_temp_img").src = "/data/air_temp.png?" + new Date().getTime();
+			document.getElementById('food_temp_img').src = '/data/food_temp.png?' + new Date().getTime();
+			document.getElementById('humidity_img').src = '/data/humidity.png?' + new Date().getTime();
+			
+			setTimeout(updateImages, 5000); // Call the function again after 5 seconds
+		}
+	</script>
+	"""
+	return html
+
+
+def configure_logging(is_debug: bool):
+	log_level = logging.DEBUG if is_debug else logging.INFO
+
+	log_format = "%(asctime)s | %(levelname)-8s | %(filename)-12s | %(message)s"
+
+	logging.basicConfig(level=log_level, format=log_format)
+
+	stream_handler = logging.StreamHandler(sys.stdout)
+	stream_handler.setLevel(log_level)
+	stream_handler.setFormatter(logging.Formatter(log_format))
+
+	file_handler = logging.FileHandler(config.FILE_CONTROLLER_LOGFILE, mode="a")
+	file_handler.setLevel(log_level)
+	file_handler.setFormatter(logging.Formatter(log_format))
+
+	#logging.getLogger().addHandler(stream_handler)
+	logging.getLogger().addHandler(file_handler)
+
+
+def main():
+	global last_alerted, last_graph_generated, messager, measurer, grapher, telegramer
+
+	if not os.path.isdir(config.FOLDER_DATA_FOLDER):
+		os.makedirs(output_folder)
+
+	parser = argparse.ArgumentParser(description="SmartFermChamber controller software")
+	parser.add_argument("--debug", action="store_true", help="Enable debug mode (default: off)")
+
+	args = parser.parse_args()
+	configure_logging(args.debug)
+
+	if args.debug:
+		config.GRAPH_GENERATION_PERIOD = 5
+		config.FILE_DATA_FLUSH_AFTER = 5
+
+	messager = MqttClient(config.MQTT_ADDRESS, config.MQTT_PORT)
+	measurer = MeasurementCollector()
+	grapher = GraphGenerator()
+
+	app.run(host='0.0.0.0', port=8080)
+
+	logging.info("controller started!")
+
+	if config.TELEGRAM_ENABLED:
+			telegramer = TelegramNotifier(my_secrets.TELEGRAM_TOKEN, my_secrets.TELEGRAM_ID)
+			last_alerted = None # TODO: fix this, this may crash if None initially
+			telegramer.send_alert("Fermentation control started!")
+
+	while True:
+
+		# check if we need to do an alert
+		if not messager.is_device_alive():
+			last_alerted_delta = (datetime.now() - last_alerted).total_seconds()
+			if config.TELEGRAM_ENABLED and last_alerted_delta > config.TELEGRAM_WAIT_BETWEEN_ALERTS:
+				telegram_client.send_alert("The fermentation chamber seems to have died!")
+				last_alerted = datetime.now()
+
+		# generate a graph if necessary
+		graph_timedelta = (datetime.now() - last_graph_generated).total_seconds()
+		if graph_timedelta > config.GRAPH_GENERATION_PERIOD:
+			logging.debug("generating graphs...")
+			graph_data = measurer.get_last_by_hour(config.GRAPH_VISIBLE_HOURS)
+			grapher.create_all_graphs(graph_data)
+			last_graph_generated = datetime.now()
+
+		sleep(1)
 
 if __name__ == "__main__":
 	main()

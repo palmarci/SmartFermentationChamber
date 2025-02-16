@@ -27,12 +27,14 @@ float get_target_hum()
 void set_target_hum(float val)
 {
 	logprint("setting target humidity to " + String(val));
+	nvm_write_string(NVM_TARGET_HUM, String(val));
 	target_hum = val;
 }
 
 void set_target_temp(float val)
 {
 	logprint("setting target temp to " + String(val));
+	nvm_write_string(NVM_TARGET_TEMP, String(val));
 	target_temp = val;
 }
 

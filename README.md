@@ -1,6 +1,6 @@
 # Smart Fermentation Chamber
 
-This is a SW + HW + woodworking project to create an insulated chamber with regulated temperature and humidity to perform food fermentation. This project is currently work-in-progress, please adapt the design for your needs and also make sure to double check the schematic/PCB before ordering.
+This is a SW + HW (and woodworking) project to create an insulated chamber with regulated temperature and humidity to perform food fermentation. This project is currently work-in-progress, please adapt the design for your needs and also make sure to double check the schematic/PCB before ordering.
 
 ## Table of contents
 - [Table of contents](#table-of-contents)
@@ -102,4 +102,4 @@ Graphs<br><img src="doc/graphs.png">
 
 
 ## TODOs
-- update box picture once everything is finished
+- update box and web pictures once everything is finished

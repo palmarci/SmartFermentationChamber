@@ -114,7 +114,7 @@ void sensor_task(void *parameter) {
 	while (true)
 	{
 		measure_sensors();
-		vTaskDelay(pdMS_TO_TICKS(100));
+		vTaskDelay(pdMS_TO_TICKS(delay));
 	}
 }
 
