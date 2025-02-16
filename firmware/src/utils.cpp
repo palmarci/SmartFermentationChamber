@@ -72,6 +72,7 @@ void reset()
 void reboot(String error_message)
 {
 	logprint("REBOOT! reason: " + error_message, LOG_PANIC);
+	// TODO: add delay here, because sometimes it crashes and the message does not go trough on mqtt!
 	reset();
 }
 
