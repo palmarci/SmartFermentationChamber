@@ -3,7 +3,7 @@ import os
 FOLDER_RUNNING_FOLDER = os.path.dirname(os.path.abspath(__file__))
 FOLDER_DATA_FOLDER = os.path.join(FOLDER_RUNNING_FOLDER, "data")
 
-MQTT_ADDRESS = "192.168.1.100"
+MQTT_ADDRESS = "192.168.1.12"
 MQTT_PORT = 1883
 MQTT_ROOT_TOPIC = "SmartFermentationChamber/"
 MQTT_MEAS_TOPIC = "measurement"

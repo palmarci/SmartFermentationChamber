@@ -2,6 +2,8 @@ import matplotlib.pyplot as plt
 from collections import defaultdict
 import os
 import logging
+import matplotlib.dates as mdates
+from datetime import datetime
 
 from measurements import Measurement, MeasurementType
 from config import GRAPH_VISIBLE_HOURS, FOLDER_DATA_FOLDER
@@ -14,25 +16,40 @@ class GraphGenerator():
 	def __nice_name(self, text:str):
 		return text.replace("_", " ").title()
 
-	def __generate_one_graph(self, sensor_type:str, measurements:list[Measurement]):
+	def __generate_one_graph(self, sensor_type: str, measurements: list[Measurement]):
 		plt.figure(figsize=(10, 6))
 
 		timestamps = []
 		values = []
+
 		for m in measurements:
-			timestamps.append(m.timestamp)
+			try:
+				timestamps.append(datetime.fromtimestamp(int(m.timestamp)))  # Convert Unix timestamp to datetime
+			except (ValueError, TypeError):
+				logging.error("Invalid timestamp: %s", m.timestamp)
+				continue  # Skip invalid timestamps
+
 			values.append(m.value)
+
+		if not timestamps:
+			logging.warning("No valid timestamps for %s", sensor_type)
+			return
 
 		sensor_name = self.__nice_name(sensor_type)
 
 		plt.plot(timestamps, values)
 		plt.title(f'{sensor_name} Sensor Data (Last {GRAPH_VISIBLE_HOURS} Hours)')
-		plt.xlabel('Timestamp') # TODO: fix the timestamp parsing in the graph
+		plt.xlabel('Timestamp')
 		plt.ylabel('Value')
 		plt.grid(True)
+
+		# **Fix: Format timestamp axis properly**
 		plt.xticks(rotation=45)
+		plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d %H:%M'))  # Format as readable datetime
+		plt.gca().xaxis.set_major_locator(mdates.AutoDateLocator())  # Auto adjust tick spacing
+
 		plt.tight_layout()
-		
+
 		output_filename = os.path.join(FOLDER_DATA_FOLDER, f'{sensor_type}.png')
 		plt.savefig(output_filename)
 		plt.close()
