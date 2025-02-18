@@ -28,7 +28,11 @@ class Measurement:
 		self.timestamp = timestamp
 
 	def __str__(self):
-		return f"type={self.type}, value={self.value}, ts={self.timestamp}"
+		return f"\nMeasurement: type={self.type}, value={self.value}, ts={self.timestamp}"
+
+	def __repr__(self):
+		return str(self)
+
 	def to_dict(self) -> dict:
 		#logging.debug(f"converting: {str(self)}")
 		return {

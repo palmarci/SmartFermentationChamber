@@ -55,7 +55,7 @@ void halt(String reason, int delay_between, int delay_after)
 {
 	logprint("HALTING! reason: " + reason, LOG_PANIC);
 	set_heater(false);
-	set_humidifer(false);
+	set_humidifer(false); // TODO add force parameter because halt/reboot/user web ui shall overwrite it
 	stop_all_tasks();
 	while (true)
 	{
@@ -72,7 +72,7 @@ void reset()
 void reboot(String error_message)
 {
 	logprint("REBOOT! reason: " + error_message, LOG_PANIC);
-	// TODO: add delay here, because sometimes it crashes and the message does not go trough on mqtt!
+	vTaskDelay(pdMS_TO_TICKS(250));
 	reset();
 }
 

@@ -9,6 +9,7 @@
 #include "utils.h"
 #include "config.h"
 #include "network.h"
+#include "control.h"
 
 OneWire onewire_bus(ONEWIRE_BUS_PIN);
 DallasTemperature dallas_sensors(&onewire_bus);
@@ -49,65 +50,76 @@ void check_sensor_timeout()
 	}
 }
 
+float relative_to_abs_humidity(float temp, float hum_percentage) {
+	// https://gist.github.com/vsee/a51d2ebc7376bbd38f3d58c87c2b5d1b
+    float exponent = expf((17.67f * temp) / (temp + 243.5f)); 
+    float absH = (6.112f * exponent * hum_percentage * 18.02f) / ((273.15f + temp) * 100.0f * 0.08314f);
+	return absH;
+}
+
 void measure_sensors()
 {
 	bool all_good = true;
 	check_sensor_timeout();
 
-	// humidity
-	float raw_hum = bme_sensor.readHumidity();
-
-	if (validate_hum_range(raw_hum))
-	{
-		float last_hum_temp = raw_hum + BME_HUMIDITY_OFFSET; // add offset only after validation, this can in theory hit the limit
-		// clamp it again after offsetting
-		if (last_hum_temp > 100) {
-			last_hum_temp = 100;
-		} 
-		if (last_hum_temp < 0) {
-			last_hum_temp = 0;
-		}
-		last_hum = last_hum_temp; // set it only after clamping, to prevent timing bugs
-		mqtt_send(String(MQTT_MEASUREMENT_TOPIC) + "/humidity", String(last_hum));
-	}
-	else
-	{
-		all_good = false;
-	}
+	float current_food_temp;
+	float current_air_temp;
+	float current_hum;
 
 	// food temp
 	dallas_sensors.requestTemperatures();
-	float food_temp_raw = dallas_sensors.getTempCByIndex(0) + DALLAS_TEMP_OFFSET; // no checks here, i trust the user 
-	if (validate_temp_range(food_temp_raw))
+	current_food_temp = dallas_sensors.getTempCByIndex(0) + DALLAS_TEMP_OFFSET; // no checks here, i trust the user 
+	if (!validate_temp_range(current_food_temp))
 	{
-		last_food_temp = food_temp_raw; 
-		mqtt_send(String(MQTT_MEASUREMENT_TOPIC) + "/food_temp", String(last_food_temp));
+		logprint("food temp read invalid: " + String(current_food_temp), LOG_WARNING);
+		all_good = false;
+	}
+	
+	// humidity
+	float raw_hum = bme_sensor.readHumidity();
+	if (validate_hum_range(raw_hum))
+	{
+		current_hum = raw_hum + BME_HUMIDITY_OFFSET; // add offset only after validation, this can in theory hit the limit
+		// clamp it again after offsetting
+		if (current_hum > 100) {
+			current_hum = 100;
+		} 
+		if (current_hum < 0) {
+			current_hum = 0;
+		}
 	}
 	else
 	{
+		logprint("humidity read invalid: " + String(raw_hum), LOG_WARNING);
 		all_good = false;
 	}
 
 	// air temp
-	float air_temp = bme_sensor.readTemperature() + BME_TEMP_OFFSET; // also no checks here
-	if (validate_temp_range(air_temp))
+	current_air_temp = bme_sensor.readTemperature() + BME_TEMP_OFFSET; // also no checks here
+	if (!validate_temp_range(current_air_temp))
 	{
-		last_air_temp = air_temp;
-		mqtt_send(String(MQTT_MEASUREMENT_TOPIC) + "/air_temp", String(last_air_temp));
-	}
-	else
-	{
+		logprint("air temp read invalid: " + String(current_air_temp), LOG_WARNING);
 		all_good = false;
 	}
+
 
 	if (all_good)
 	{
 		last_valid_timer = millis();
+		float abs_humidity = relative_to_abs_humidity(current_air_temp, current_hum);
+		last_hum = abs_humidity;
+		last_food_temp = current_food_temp;
+		last_air_temp = current_air_temp;
+		mqtt_send(String(MQTT_MEASUREMENT_TOPIC) + "/humidity", String(last_hum));
+		mqtt_send(String(MQTT_MEASUREMENT_TOPIC) + "/food_temp", String(last_food_temp));
+		mqtt_send(String(MQTT_MEASUREMENT_TOPIC) + "/air_temp", String(last_air_temp));
 	}
 	else
 	{
 		logprint("invalid data from sensor(s), invalidated current measurement", LOG_WARNING);
 	}
+
+
 }
 
 void init_dallas()
@@ -154,8 +166,10 @@ void sensors_init()
 
 String get_sensor_status_text()
 {
-	String status_text = "Food temperature: " + String(last_food_temp) + "\n\n" +
-						 "Chamber temperature: " + String(last_air_temp) + "\n" +
-						 "Chamber humdity: " + String(last_hum) + "%";
+	String status_text = "Food temperature: " + String(last_food_temp) + " °C\n" +
+						 "Chamber temperature: " + String(last_air_temp)  + " °C\n" +
+						 "Chamber humidity: " + String(last_hum)  + " g/m^3\n\n" +
+
+						 "Target humdity: " + String(get_target_hum_abs()) + " g/m^3";
 	return status_text;
 }

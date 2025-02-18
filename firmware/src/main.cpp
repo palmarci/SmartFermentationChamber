@@ -40,7 +40,7 @@ void setup()
 	serial_init();
 	pin_init();
 	nvm_init();
-	target_values_init();
+	control_init();
 	wifi_init();
 	mqtt_init();
 	sensors_init();

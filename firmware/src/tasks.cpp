@@ -10,16 +10,16 @@
 #include "sensors.h"
 
 TaskHandle_t task_handles[MAX_TASK_HANDLES] = {NULL};
-int running_tasks = 0;
+static int running_tasks = 0;
+static unsigned long restart_delay_ms = RESTART_AFTER * 60 * 60 * 1000;
 
 // reports mcu memory & task status and sends heartbeat on mqtt
-void reporting_task(void *parameter)
+void housekeeping_task(void *parameter)
 {
 	int delay = 60 * 1000;
 	while (true)
 	{
 		vTaskDelay(pdMS_TO_TICKS(delay));
-
 		uint32_t freeHeapBytes = heap_caps_get_free_size(MALLOC_CAP_DEFAULT);
 		uint32_t totalHeapBytes = heap_caps_get_total_size(MALLOC_CAP_DEFAULT);
 		float percentageHeapFree = freeHeapBytes * 100.0f / (float)totalHeapBytes;
@@ -28,33 +28,41 @@ void reporting_task(void *parameter)
 		String tasks_text = "currently running tasks: " + String(running_tasks);
 		logprint(tasks_text);
 		logprint(mem_text);
-		mqtt_send(MQTT_HEARTBEAT_TOPIC, "hello");
+
+		if (millis() > restart_delay_ms) {
+			reboot("periodic reset: " + String(restart_delay_ms) + " ms reached!");
+		}
 	}
 }
 
 // monitors & reconnects to wifi and mqtt
-void network_task(void *parameter)
+void network_reconnector_task(void *parameter)
 {
-	int delay = 20 * 1000;
+	int delay = 5 * 1000;
 	while (true)
 	{
 		vTaskDelay(pdMS_TO_TICKS(delay));
 		if (!wifi_connected())
 		{
+			Serial.println("we are not connected to wifi!");
 			wifi_init();
 		}
-		if (!mqtt_connected())
+		if (wifi_connected() && !mqtt_connected())
 		{
+			Serial.println("we are not connected to mqtt!");
 			mqtt_init();
 		}
-		logprint("network checks done");
+
+		if (!wifi_connected() || !mqtt_connected()) {
+			Serial.println("something went wrong during network reconnect!");
+		}
 	}
 }
 
 // handles the auto switching of heater/humidifier based on sensor data
 void autopilot_task(void *parameter)
 {
-	int delay = 5 * 1000;
+	int delay = SENSOR_MEASURE_PERIOD * 1000;
 	while (true)
 	{
 		vTaskDelay(pdMS_TO_TICKS(delay));
@@ -76,16 +84,19 @@ void web_update_task(void *parameter)
 	}
 }
 
+/*
 // restarts mcu after a given time
 void periodic_reset_task(void *parameter)
 {
 	unsigned long delay = RESTART_AFTER * 60 * 60 * 1000;
-	while (true)
-	{
-		vTaskDelay(pdMS_TO_TICKS(delay));
-		reboot("periodic reset: " + String(RESTART_AFTER) + " hour reached");
-	}
+	//while (true)
+	//{
+	logprint("periodic reset will happen after " + String(delay) + " ms!");
+	vTaskDelay(pdMS_TO_TICKS(delay));
+	reboot("periodic reset: " + String(RESTART_AFTER) + " hour reached");
+//	}
 }
+*/
 
 // handle special workaround to simulate a "press" on the humidifer's button
 /*
@@ -109,8 +120,8 @@ void humdifier_helper_task(void *parameter)
 */
 
 // measure sensors
-void sensor_task(void *parameter) {
-	int delay = 3 * 1000;
+void sensor_measure_task(void *parameter) {
+	int delay = SENSOR_MEASURE_PERIOD * 1000;
 	while (true)
 	{
 		measure_sensors();
@@ -155,11 +166,14 @@ void stop_all_tasks()
 void tasks_init()
 {
 	logprint("*** tasks_init ***");
-	task_start(sensor_task, "sensor_task");
-	task_start(reporting_task, "reporting_task");
-	task_start(network_task, "network_task");
+	task_start(sensor_measure_task, "sensor_measure_task");
+	task_start(housekeeping_task, "housekeeping_task");
+	task_start(network_reconnector_task, "network_reconnector_task");
 	task_start(web_update_task, "web_update_task");
+
+	vTaskDelay(pdMS_TO_TICKS(100)); // ensure autopilot starts up after sensor_measure_task ran, so we get fresh data
 	task_start(autopilot_task, "autopilot_task");
+
 	//task_start(humdifier_helper_task, "humdifier_helper_task");
-	task_start(periodic_reset_task, "periodic_reset_task");
+	//task_start(periodic_reset_task, "periodic_reset_task");
 }

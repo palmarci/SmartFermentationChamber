@@ -72,13 +72,15 @@ def send_report(path):
 def serve_main_web():
 	html = """
 	<center>
-	<h1>SmartFermentationChamber Controller</h1>
-	<title>SmartFermentationChamber Controller</title>
+	<h1>SmartFermentationChamber Web Gui</h1>
+	<title>SmartFermentationChamber Web Gui</title>
+	<a href="/data/device.log">device log</a>
+	<br><br>	
 	<img id="air_temp_img" src="/data/air_temp.png"><br>
 	<img id="food_temp_img" src="/data/food_temp.png"><br>
 	<img id="humidity_img" src="/data/humidity.png"><br>
+	
 	</center>
-
 	<script>
 		updateImages();
 		

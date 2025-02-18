@@ -48,24 +48,23 @@ void nvm_write_string(String name, String data)
 	prefs.putString(name.c_str(), data);
 }
 
-bool nvm_validate_stored_config()
-{
-	String stored_ssid = nvm_read_string(NVM_WIFI_SSID);
-	String stored_pw = nvm_read_string(NVM_WIFI_PW);
-	String stored_ip = nvm_read_string(NVM_MQTT_IP);
-	String stored_port = nvm_read_string(NVM_MQTT_PORT);
-	String stored_temp = nvm_read_string(NVM_TARGET_TEMP);
-	String stored_hum = nvm_read_string(NVM_TARGET_HUM);
+bool nvm_validate_stored_config() {
+    const char* keys[] = {
+        NVM_WIFI_SSID, NVM_WIFI_PW, NVM_MQTT_IP, NVM_MQTT_PORT,
+        NVM_TARGET_TEMP, NVM_TARGET_HUM_REL, NVM_TARGET_HUM_ABS,
+        NVM_PID_KP, NVM_PID_KI, NVM_PID_KD
+    };
+    const int num_keys = sizeof(keys) / sizeof(keys[0]);
 
-	if (stored_ssid == "" || stored_pw == "" ||
-		stored_ip == "" || stored_port == "" ||
-		stored_temp == "" || stored_hum == "")
-	{
-		logprint("invalid nvm config found!");
-		return false;
-	}
-	logprint("nvm config validated!");
-	return true;
+    for (int i = 0; i < num_keys; i++) {
+        if (nvm_read_string(keys[i]).isEmpty()) {
+            logprint("Invalid NVM config found!");
+            return false;
+        }
+    }
+    
+    logprint("NVM config is valid");
+    return true;
 }
 
 void nvm_set_defaults()
@@ -84,6 +83,12 @@ void nvm_set_defaults()
 	nvm_write_string(NVM_MQTT_IP, MQTT_DEFAULT_IP);
 	nvm_write_string(NVM_MQTT_PORT, String(MQTT_DEFAULT_PORT));
 	nvm_write_string(NVM_TARGET_TEMP, String(DEFAULT_TARGET_TEMP));
-	nvm_write_string(NVM_TARGET_HUM, String(DEFAULT_TARGET_HUMIDITY));
+	nvm_write_string(NVM_TARGET_HUM_REL, String(DEFAULT_TARGET_HUMIDITY_REL));
+	nvm_write_string(NVM_TARGET_HUM_ABS, String(DEFAULT_TARGET_HUMIDITY_ABS));
+
+	nvm_write_string(NVM_PID_KP, String(PID_DEFAULT_KP));
+	nvm_write_string(NVM_PID_KI, String(PID_DEFAULT_KI));
+	nvm_write_string(NVM_PID_KD, String(PID_DEFAULT_KD));
+
 	logprint("wrote default config");
 }

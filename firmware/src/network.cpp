@@ -27,7 +27,7 @@ bool mqtt_connected()
 {
 	bool state = mqtt_client.connected();
 	// cant use logprint here due to infinite loop
-	//String text = "mqtt currently connected? " + String(state);
+	//String text = "            mqtt currently connected? " + String(state);
 	//Serial.println(text);
 	return state;
 }
@@ -60,7 +60,7 @@ bool wifi_connected()
 {
 	// TODO whats the status in AP mode?
 	bool status = (WiFi.status() == WL_CONNECTED);
-	Serial.println("                 wifi is connected? " + String(status) + " ");
+	//Serial.println("                 wifi is connected? " + String(status) + " ");
 	return status;
 }
 
@@ -91,6 +91,8 @@ void wifi_init()
 {
 	logprint("*** wifi_init ***");
 	WiFi.setHostname(String(HOSTNAME).c_str());
+	WiFi.setSleep(false);
+	
 	if (!WIFI_AP_MODE_FORCE)
 	{
 		String ssid = nvm_read_string(NVM_WIFI_SSID);
@@ -105,5 +107,4 @@ void wifi_init()
 	// fallback to AP mode
 	logprint("failed to connect to wifi!", LOG_WARNING);
 	wifi_create_ap();
-	WiFi.setSleep(false);
 }
