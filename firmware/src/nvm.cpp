@@ -51,8 +51,7 @@ void nvm_write_string(String name, String data)
 bool nvm_validate_stored_config() {
     const char* keys[] = {
         NVM_WIFI_SSID, NVM_WIFI_PW, NVM_MQTT_IP, NVM_MQTT_PORT,
-        NVM_TARGET_TEMP, NVM_TARGET_HUM_REL, NVM_TARGET_HUM_ABS,
-        NVM_PID_KP, NVM_PID_KI, NVM_PID_KD
+        NVM_TARGET_TEMP, NVM_TARGET_HUM
     };
     const int num_keys = sizeof(keys) / sizeof(keys[0]);
 
@@ -83,12 +82,7 @@ void nvm_set_defaults()
 	nvm_write_string(NVM_MQTT_IP, MQTT_DEFAULT_IP);
 	nvm_write_string(NVM_MQTT_PORT, String(MQTT_DEFAULT_PORT));
 	nvm_write_string(NVM_TARGET_TEMP, String(DEFAULT_TARGET_TEMP));
-	nvm_write_string(NVM_TARGET_HUM_REL, String(DEFAULT_TARGET_HUMIDITY_REL));
-	nvm_write_string(NVM_TARGET_HUM_ABS, String(DEFAULT_TARGET_HUMIDITY_ABS));
-
-	nvm_write_string(NVM_PID_KP, String(PID_DEFAULT_KP));
-	nvm_write_string(NVM_PID_KI, String(PID_DEFAULT_KI));
-	nvm_write_string(NVM_PID_KD, String(PID_DEFAULT_KD));
+	nvm_write_string(NVM_TARGET_HUM, String(DEFAULT_TARGET_HUMIDITY_REL));
 
 	logprint("wrote default config");
 }

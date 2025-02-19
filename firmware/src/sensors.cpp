@@ -50,11 +50,18 @@ void check_sensor_timeout()
 	}
 }
 
+// https://gist.github.com/vsee/a51d2ebc7376bbd38f3d58c87c2b5d1b
 float relative_to_abs_humidity(float temp, float hum_percentage) {
-	// https://gist.github.com/vsee/a51d2ebc7376bbd38f3d58c87c2b5d1b
-    float exponent = expf((17.67f * temp) / (temp + 243.5f)); 
-    float absH = (6.112f * exponent * hum_percentage * 18.02f) / ((273.15f + temp) * 100.0f * 0.08314f);
+	float exponent = expf((17.67f * temp) / (temp + 243.5f)); 
+	float absH = (6.112f * exponent * hum_percentage * 18.02f) / ((273.15f + temp) * 100.0f * 0.08314f);
 	return absH;
+}
+
+float abs_to_relative_humidity(float temp, float absH) {
+	float exponent = expf((17.67f * temp) / (temp + 243.5f)); 
+	float hum_percentage = ((273.15f + temp) * 100.0f * 0.08314f * absH) / (6.112f * exponent * 18.02f);
+	//logprint("abs_to_relative_humidity " + String(temp) + " C, " + String(absH) + " % -> " + String(hum_percentage));
+	return hum_percentage;
 }
 
 void measure_sensors()
@@ -77,6 +84,7 @@ void measure_sensors()
 	
 	// humidity
 	float raw_hum = bme_sensor.readHumidity();
+	logprint("raw humidity = " + String(raw_hum));
 	if (validate_hum_range(raw_hum))
 	{
 		current_hum = raw_hum + BME_HUMIDITY_OFFSET; // add offset only after validation, this can in theory hit the limit
@@ -102,12 +110,11 @@ void measure_sensors()
 		all_good = false;
 	}
 
-
 	if (all_good)
 	{
 		last_valid_timer = millis();
-		float abs_humidity = relative_to_abs_humidity(current_air_temp, current_hum);
-		last_hum = abs_humidity;
+		last_hum = relative_to_abs_humidity(current_air_temp, current_hum);
+		//last_hum = current_hum;
 		last_food_temp = current_food_temp;
 		last_air_temp = current_air_temp;
 		mqtt_send(String(MQTT_MEASUREMENT_TOPIC) + "/humidity", String(last_hum));
@@ -167,9 +174,13 @@ void sensors_init()
 String get_sensor_status_text()
 {
 	String status_text = "Food temperature: " + String(last_food_temp) + " °C\n" +
-						 "Chamber temperature: " + String(last_air_temp)  + " °C\n" +
-						 "Chamber humidity: " + String(last_hum)  + " g/m^3\n\n" +
+						 "Chamber humidity: " + String(abs_to_relative_humidity(last_air_temp, last_hum)) + " % (" + String(last_hum) + " g/m^3)\n\n" + 
 
-						 "Target humdity: " + String(get_target_hum_abs()) + " g/m^3";
+						 "Heater duty cycle: " + String(get_heater_duty_cycle()) + " %\n"+
+						 "Humidifer duty cycle: " + String(get_humidifier_duty_cycle()) + " %\n\n"+
+
+						 "Chamber temperature: " + String(last_air_temp)  + " °C\n"+
+						 "Taget humidity: " + String(get_target_hum())  + " g/m^3\n";
+
 	return status_text;
 }

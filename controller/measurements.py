@@ -10,6 +10,8 @@ class MeasurementType(Enum):
 	FOOD_TEMP = 1
 	AIR_TEMP = 2
 	HUMIDITY = 3
+	HEATER_DUTY_CYCLE = 4
+	HUMIDIFIER_DUTY_CYCLE = 5
 
 	@classmethod
 	def from_string(cls, input_str: str):

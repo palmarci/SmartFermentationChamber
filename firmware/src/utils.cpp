@@ -54,8 +54,8 @@ void do_blink(int delay_between, int delay_after)
 void halt(String reason, int delay_between, int delay_after)
 {
 	logprint("HALTING! reason: " + reason, LOG_PANIC);
-	set_heater(false);
-	set_humidifer(false); // TODO add force parameter because halt/reboot/user web ui shall overwrite it
+	set_heater(false, true);
+	set_humidifer(false);
 	stop_all_tasks();
 	while (true)
 	{

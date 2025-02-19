@@ -79,7 +79,8 @@ def serve_main_web():
 	<img id="air_temp_img" src="/data/air_temp.png"><br>
 	<img id="food_temp_img" src="/data/food_temp.png"><br>
 	<img id="humidity_img" src="/data/humidity.png"><br>
-	
+	<img id="humidity_img" src="/data/heater_duty_cycle.png"><br>
+	<img id="humidity_img" src="/data/humidifier_duty_cycle.png"><br>
 	</center>
 	<script>
 		updateImages();

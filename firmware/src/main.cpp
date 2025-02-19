@@ -22,7 +22,7 @@ void pin_init() {
 	pinMode(LED_PIN, OUTPUT);
 	pinMode(PIN_HEATER, OUTPUT);
 	pinMode(PIN_HUMIDIFIER, OUTPUT);
-	set_heater(false);
+	set_heater(false, true);
 	set_humidifer(false);
 }
 
