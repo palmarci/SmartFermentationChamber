@@ -46,3 +46,4 @@ fp-info-cache
 
 
 controller/data/*
+firmware/src/secrets.h
