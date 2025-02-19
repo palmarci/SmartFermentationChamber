@@ -14,7 +14,6 @@ This is a SW + HW (and woodworking) project to create an insulated chamber with 
   - [Box](#box)
   - [Web server graphs](#web-server-graphs)
   - [ESP Web UI](#esp-web-ui)
-- [TODOs](#todos)
 
 
 ## Architecture
@@ -89,17 +88,13 @@ I ordered my parts from [Hestore](http://hestore.hu), if anyone needs to look up
 
 ### Box
 *(before the PCB was created)*
-<img src="doc/box1.png">
-<img src="doc/box2.png">
+<img src="doc/box_inside.jpg">
+<img src="doc/box_outside.jpg">
 
 ### Web server graphs
-Graphs<br><img src="doc/graphs.png">
+<img src="doc/graph_food.png"><br>
+<img src="doc/graph_humidity.png"><br>
 
 ### ESP Web UI
-![alt text](doc/web.png)
-
-![alt text](doc/web2.png)
-
-
-## TODOs
-- update box and web pictures once everything is finished
+![alt text](doc/web1.png)<br>
+![alt text](doc/web2.png)<br>
