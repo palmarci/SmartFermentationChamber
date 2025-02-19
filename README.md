@@ -87,9 +87,8 @@ I ordered my parts from [Hestore](http://hestore.hu), if anyone needs to look up
 ## Pictures
 
 ### Box
-*(before the PCB was created)*
-<img src="doc/box_inside.jpg">
-<img src="doc/box_outside.jpg">
+<img src="doc/box_inside.jpg" width="50%">
+<img src="doc/box_outside.jpg" width="50%">
 
 ### Web server graphs
 <img src="doc/graph_food.png"><br>
