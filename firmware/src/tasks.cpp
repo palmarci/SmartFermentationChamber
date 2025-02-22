@@ -1,6 +1,9 @@
 #include <Arduino.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
+#include <WiFi.h>
+//#include <ArduinoOTA.h>
+
 #include "config.h"
 #include "utils.h"
 #include "tasks.h"
@@ -8,12 +11,14 @@
 #include "control.h"
 #include "web.h"
 #include "sensors.h"
+#include "ota.h"
+#include "nvm.h"
 
 TaskHandle_t task_handles[MAX_TASK_HANDLES] = {NULL};
 static int running_tasks = 0;
-static unsigned long restart_delay_ms = RESTART_AFTER * 60 * 60 * 1000;
+static unsigned long restart_delay_ms = (unsigned long)RESTART_AFTER_HOURS * 60UL * 60UL * 1000UL;
 
-// reports mcu memory & task status and sends heartbeat on mqtt
+// reports mcu memory & task status and sends heartbeat on mqtt, resets if needed
 void housekeeping_task(void *parameter)
 {
 	int delay = 60 * 1000;
@@ -35,29 +40,34 @@ void housekeeping_task(void *parameter)
 	}
 }
 
-// monitors & reconnects to wifi and mqtt
 void network_reconnector_task(void *parameter)
 {
 	int delay = 5 * 1000;
 	while (true)
 	{
 		vTaskDelay(pdMS_TO_TICKS(delay));
-		if (!wifi_connected())
+
+		if (!wifi_is_connected())
 		{
 			Serial.println("we are not connected to wifi!");
-			wifi_init();
+			String ssid = nvm_read_string(NVM_WIFI_SSID);
+			String pw = nvm_read_string(NVM_WIFI_PW);
+			wifi_connect(ssid, pw);
 		}
-		if (wifi_connected() && !mqtt_connected())
+		if (wifi_is_connected() && !mqtt_connected())
 		{
 			Serial.println("we are not connected to mqtt!");
 			mqtt_init();
 		}
 
-		if (!wifi_connected() || !mqtt_connected()) {
+		if (!wifi_is_connected() || !mqtt_connected()) {
 			Serial.println("something went wrong during network reconnect!");
+		} else {
+			Serial.println("all reconnected!");
 		}
 	}
 }
+
 
 // handles the auto switching of heater/humidifier based on sensor data
 void autopilot_task(void *parameter)
@@ -68,8 +78,9 @@ void autopilot_task(void *parameter)
 		vTaskDelay(pdMS_TO_TICKS(delay));
 		if (get_autopilot_state())
 		{
-			autopilot_logic();
+			autopilot_step();
 		}
+		duty_cycle_update();
 	}
 }
 
@@ -80,44 +91,13 @@ void web_update_task(void *parameter)
 	while (true)
 	{
 		vTaskDelay(pdMS_TO_TICKS(delay));
-		web_update();
-	}
-}
-
-/*
-// restarts mcu after a given time
-void periodic_reset_task(void *parameter)
-{
-	unsigned long delay = RESTART_AFTER * 60 * 60 * 1000;
-	//while (true)
-	//{
-	logprint("periodic reset will happen after " + String(delay) + " ms!");
-	vTaskDelay(pdMS_TO_TICKS(delay));
-	reboot("periodic reset: " + String(RESTART_AFTER) + " hour reached");
-//	}
-}
-*/
-
-// handle special workaround to simulate a "press" on the humidifer's button
-/*
-void humdifier_helper_task(void *parameter)
-{
-	int delay = 0.5 * 1000;
-	while (true)
-	{
-		if (humidifer_button_fire)
-		{
-			logprint("starting button push imitation");
-			vTaskDelay(pdMS_TO_TICKS(delay)); // wait a little for relay
-			digitalWrite(HUMIDIFER_PUSH_GATE, false); // close switch's pin to ground with transistor
-			vTaskDelay(pdMS_TO_TICKS(delay)); // simulate button press
-			digitalWrite(HUMIDIFER_PUSH_GATE, true); // pull high
-			humidifer_button_fire = false;
+		if (wifi_is_connected()) {
+			web_update();
 		}
-		vTaskDelay(pdMS_TO_TICKS(100));
+		
 	}
 }
-*/
+
 
 // measure sensors
 void sensor_measure_task(void *parameter) {
@@ -168,12 +148,17 @@ void tasks_init()
 	logprint("*** tasks_init ***");
 	task_start(sensor_measure_task, "sensor_measure_task");
 	task_start(housekeeping_task, "housekeeping_task");
-	task_start(network_reconnector_task, "network_reconnector_task");
+	if (!wifi_is_in_ap_mode()) {
+		task_start(network_reconnector_task, "network_reconnector_task");
+	} else {
+		Serial.println("skipping network reconnector task since we are in AP mode!");
+	}
 	task_start(web_update_task, "web_update_task");
+
+	if (OTA_ENABLED) {
+		task_start(ota_task, "ota_task");
+	}
 
 	vTaskDelay(pdMS_TO_TICKS(100)); // ensure autopilot starts up after sensor_measure_task ran, so we get fresh data
 	task_start(autopilot_task, "autopilot_task");
-
-	//task_start(humdifier_helper_task, "humdifier_helper_task");
-	//task_start(periodic_reset_task, "periodic_reset_task");
 }

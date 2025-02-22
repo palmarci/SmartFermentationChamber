@@ -71,28 +71,45 @@ def send_report(path):
 @app.route('/')
 def serve_main_web():
 	html = """
-	<center>
-	<h1>SmartFermentationChamber Web Gui</h1>
-	<title>SmartFermentationChamber Web Gui</title>
-	<a href="/data/device.log">device log</a>
-	<br><br>	
-	<img id="air_temp_img" src="/data/air_temp.png"><br>
-	<img id="food_temp_img" src="/data/food_temp.png"><br>
-	<img id="humidity_img" src="/data/humidity.png"><br>
-	<img id="humidity_img" src="/data/heater_duty_cycle.png"><br>
-	<img id="humidity_img" src="/data/humidifier_duty_cycle.png"><br>
-	</center>
-	<script>
-		updateImages();
-		
-		function updateImages() {
-			document.getElementById("air_temp_img").src = "/data/air_temp.png?" + new Date().getTime();
-			document.getElementById('food_temp_img').src = '/data/food_temp.png?' + new Date().getTime();
-			document.getElementById('humidity_img').src = '/data/humidity.png?' + new Date().getTime();
-			
-			setTimeout(updateImages, 5000); // Call the function again after 5 seconds
-		}
-	</script>
+		<center>
+		  <h1>SmartFermentationChamber Web Gui</h1>
+		  <title>SmartFermentationChamber Web Gui</title>
+		  <a href="/data/device.log">device log</a>
+		  <br><br>
+		  <div id="images-container"></div>
+		</center>
+
+		<script>
+		  // List of image files with their corresponding IDs (ID and filename can be derived from same base name)
+		  const images = [
+		    { id: 'air_temp', file: 'air_temp.png' },
+		    { id: 'food_temp', file: 'food_temp.png' },
+		    { id: 'humidity', file: 'humidity.png' },
+		    { id: 'heater_duty_cycle', file: 'heater_duty_cycle.png' },
+		    { id: 'humidifier_duty_cycle', file: 'humidifier_duty_cycle.png' }
+		  ];
+
+		  // Dynamically create image elements
+		  const container = document.getElementById('images-container');
+		  images.forEach(img => {
+		    const imageElem = document.createElement('img');
+		    imageElem.id = img.id + '_img';
+		    imageElem.src = `/data/${img.file}`;
+		    container.appendChild(imageElem);
+		    container.appendChild(document.createElement('br'));
+		  });
+
+		  // Update images by adding a timestamp to the URL to bypass caching
+		  function updateImages() {
+		    images.forEach(img => {
+		      document.getElementById(img.id + '_img').src = `/data/${img.file}?` + new Date().getTime();
+		    });
+		    setTimeout(updateImages, 5000); // update every 5 seconds
+		  }
+
+		  updateImages();
+		</script>
+
 	"""
 	return html
 
@@ -108,7 +125,7 @@ def configure_logging(is_debug: bool):
 	stream_handler.setLevel(log_level)
 	stream_handler.setFormatter(logging.Formatter(log_format))
 
-	file_handler = logging.FileHandler(config.FILE_CONTROLLER_LOGFILE, mode="a")
+	file_handler = logging.FileHandler(config.FILE_WEBGUI_LOGFILE, mode="a")
 	file_handler.setLevel(log_level)
 	file_handler.setFormatter(logging.Formatter(log_format))
 
@@ -124,7 +141,7 @@ def main():
 	if not os.path.isdir(config.FOLDER_DATA_FOLDER):
 		os.makedirs(output_folder)
 
-	parser = argparse.ArgumentParser(description="SmartFermChamber controller software")
+	parser = argparse.ArgumentParser(description="SmartFermChamber webgui software")
 	parser.add_argument("--debug", action="store_true", help="Enable debug mode (default: off)")
 
 	args = parser.parse_args()
@@ -141,7 +158,7 @@ def main():
 	flask_thread = threading.Thread(target=run_app, daemon=True)
 	flask_thread.start()
 
-	logging.info("controller started!")
+	logging.info("webgui started!")
 
 	if config.TELEGRAM_ENABLED:
 			telegramer = TelegramNotifier(my_secrets.TELEGRAM_TOKEN, my_secrets.TELEGRAM_ID)

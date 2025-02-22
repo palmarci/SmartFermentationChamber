@@ -6,9 +6,16 @@
 #include "config.h"
 #include "nvm.h"
 #include "utils.h"
+#include "secrets.h"
 
 WiFiClient wifi_client;
 PubSubClient mqtt_client(wifi_client);
+
+static bool is_ap_mode = false;
+
+bool wifi_is_in_ap_mode() {
+	return is_ap_mode;
+}
 
 void mqtt_init()
 {
@@ -56,11 +63,9 @@ void mqtt_send(String topic, String msg)
 	mqtt_client.publish(topic.c_str(), msg.c_str());
 }
 
-bool wifi_connected()
+bool wifi_is_connected()
 {
-	// TODO whats the status in AP mode?
 	bool status = (WiFi.status() == WL_CONNECTED);
-	//Serial.println("                 wifi is connected? " + String(status) + " ");
 	return status;
 }
 
@@ -69,7 +74,7 @@ void wifi_connect(String ssid, String pw)
 	int connect_timeout = WIFI_CONNECT_TIMEOUT;
 	logprint("using wifi credentials: " + ssid + " - " + pw);
 	WiFi.begin(ssid.c_str(), pw.c_str());
-	while (!wifi_connected() && connect_timeout > 0)
+	while (!wifi_is_connected() && connect_timeout > 0)
 	{
 		delay(1000);
 		logprint("connecting to wifi...");
@@ -80,6 +85,7 @@ void wifi_connect(String ssid, String pw)
 void wifi_create_ap()
 {
 	logprint("creating wifi in AP mode...");
+	is_ap_mode = true;
 	WiFi.mode(WIFI_AP);
 	IPAddress ip;
 	ip.fromString(WIFI_AP_DEFAULT_IP);
@@ -90,6 +96,9 @@ void wifi_create_ap()
 void wifi_init()
 {
 	logprint("*** wifi_init ***");
+	WiFi.disconnect();
+	WiFi.disconnect();
+	WiFi.mode(WIFI_MODE_STA);
 	WiFi.setHostname(String(HOSTNAME).c_str());
 	WiFi.setSleep(false);
 	
@@ -98,8 +107,11 @@ void wifi_init()
 		String ssid = nvm_read_string(NVM_WIFI_SSID);
 		String pw = nvm_read_string(NVM_WIFI_PW);
 		wifi_connect(ssid, pw);
-		if (wifi_connected())
+
+		if (wifi_is_connected())
 		{
+			Serial.println("wifi connected!");
+			is_ap_mode = false;
 			return;
 		}
 	}

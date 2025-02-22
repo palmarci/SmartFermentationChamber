@@ -91,8 +91,8 @@ I ordered my parts from [Hestore](http://hestore.hu), if anyone needs to look up
 <img src="doc/box_outside.jpg" width="50%">
 
 ### Web server graphs
-<img src="doc/graph_food.png"><br>
-<img src="doc/graph_humidity.png"><br>
+<img src="doc/graph_food.png" width="50%"><br>
+<img src="doc/graph_humidity.png" width="50%"><br>
 
 ### ESP Web UI
 ![alt text](doc/web1.png)<br>

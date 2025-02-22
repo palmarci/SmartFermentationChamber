@@ -55,7 +55,7 @@ void halt(String reason, int delay_between, int delay_after)
 {
 	logprint("HALTING! reason: " + reason, LOG_PANIC);
 	set_heater(false, true);
-	set_humidifer(false);
+	set_humidifier(false);
 	stop_all_tasks();
 	while (true)
 	{

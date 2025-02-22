@@ -6,6 +6,7 @@
 #include "web.h"
 #include "config.h"
 #include "tasks.h"
+#include "ota.h"
 
 #include "soc/soc.h"
 #include "soc/rtc_cntl_reg.h"
@@ -23,7 +24,7 @@ void pin_init() {
 	pinMode(PIN_HEATER, OUTPUT);
 	pinMode(PIN_HUMIDIFIER, OUTPUT);
 	set_heater(false, true);
-	set_humidifer(false);
+	set_humidifier(false);
 }
 
 void serial_init() {
@@ -45,7 +46,9 @@ void setup()
 	mqtt_init();
 	sensors_init();
 	web_init();
+	ota_init();
 	tasks_init();
+	
 	set_autopilot(AUTOPILOT_ENABLED_AT_STARTUP); //only do this after everything is alive
 }
 

@@ -34,28 +34,34 @@
 #define NVM_MQTT_IP "MQTT_IP"
 #define NVM_MQTT_PORT "MQTT_PORT"
 #define NVM_TARGET_TEMP "NVM_T_TEMP"
-#define NVM_TARGET_HUM "NVM_T_HUM"
+#define NVM_TARGET_HUM_REL "NVM_T_HUM_REL"
+#define NVM_TARGET_HUM_ABS "NVM_T_HUM_ABS"
 
-// ******** SENSORS ********
+// ******** MEASUREMENT ********
 #define INVALID_MINIMUM_TEMP 0
 #define INVALID_MAX_TEMP 80
 #define DEFAULT_TARGET_HUMIDITY_REL 70
-#define DEFAULT_TARGET_TEMP 35
+#define DEFAULT_TARGET_HUMIDITY_ABS 21
+#define DEFAULT_TARGET_TEMP 30
 #define BME_HUMIDITY_OFFSET 0.0 // these can be negative
 #define BME_TEMP_OFFSET 0
 #define DALLAS_TEMP_OFFSET 0.8
 #define SENSOR_MEASURE_PERIOD 10 // seconds
 #define SENSOR_MEASUREMENT_TIMEOUT (SENSOR_MEASURE_PERIOD * 4)
+#define RELAY_PROTECTION_DELAY 1 // mins
+#define DUTY_CYCLE_LOGGING_TIME 60 // mins
+#define PREDICTOR_PERCENTAGE 0.04f //TODO: add this to webgui
+#define PREDICTOR_AVERAGE_COUNT 5
+#define PREDICTOR_ENABLED false
+#define OTA_ENABLED false
 
 // ******** SYSTEM ********
 #define HOSTNAME "SmartFermentationChamber"
 #define MAX_TASK_HANDLES 10
-#define RESTART_AFTER 24 // hours
+#define RESTART_AFTER_HOURS 1176 // crude overflow hack  this is 49 days if for some reason we are still alive after that
 #define AUTOPILOT_ENABLED_AT_STARTUP true 
 #define DISABLE_BROWNOUT false // if usb port voltage dips below 5V
 #define STACK_SIZE 20000
-#define RELAY_PROTECTION_DELAY 3 // mins
-#define DUTY_CYCLE_LOGGING_TIME 60 // mins
 
 // ******** MACROS ********
 #define LOG_DEBUG 1

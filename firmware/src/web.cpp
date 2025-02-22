@@ -44,7 +44,7 @@ void general_callback(Control *sender, int type)
 	if (sender->id == humidifier_control)
 	{
 		bool new_state = sender->value == "1";
-		set_humidifer(new_state);
+		set_humidifier(new_state);
 	}
 
 	if (sender->id == heater_control)
@@ -64,7 +64,8 @@ void general_callback(Control *sender, int type)
 		else
 		{
 			float abs_hum = relative_to_abs_humidity(get_target_temp(), new_hum);
-			set_target_hum_abs(abs_hum);
+			set_target_hum(abs_hum);
+			set_target_hum_rel(new_hum);
 		}
 	}
 
@@ -124,7 +125,7 @@ void web_update()
 	ESPUI.updateSwitcher(heater_control, get_heater_state());
 	ESPUI.updateSwitcher(humidifier_control, get_humidifer_state());
 	ESPUI.updateNumber(target_temp_control, get_target_temp());
-	ESPUI.updateNumber(target_hum_control, abs_to_relative_humidity(get_target_temp(), get_target_hum()));
+	ESPUI.updateNumber(target_hum_control, get_target_hum_rel());
 	ESPUI.updateSwitcher(autopilot_control, get_autopilot_state());
 }
 
@@ -146,7 +147,7 @@ void web_init()
 	humidifier_control = ESPUI.addControl(Switcher, "Humidifier", bool_to_str(get_humidifer_state()), Alizarin, ferm_tab, general_callback);
 	status_control = ESPUI.addControl(Label, "Status", "...", Sunflower, ferm_tab, general_callback);
 	target_temp_control = ESPUI.addControl(Number, "Target temperature (in C)", String(get_target_temp()), Emerald, ferm_tab, general_callback);
-	target_hum_control = ESPUI.addControl(Number, "Target humidity (in %)", String(abs_to_relative_humidity(get_target_temp(), get_target_hum())), Emerald, ferm_tab, general_callback);
+	target_hum_control = ESPUI.addControl(Number, "Target humidity (in %)", String(get_target_hum_rel()), Emerald, ferm_tab, general_callback);
 	ESPUI.addControl(Min, "", String(INVALID_MINIMUM_TEMP), None, target_temp_control);
 	ESPUI.addControl(Max, "", String(INVALID_MAX_TEMP), None, target_temp_control);
 	ESPUI.addControl(Min, "", String(0), None, target_hum_control);

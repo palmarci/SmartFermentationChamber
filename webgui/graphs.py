@@ -37,7 +37,12 @@ class GraphGenerator():
 
 		sensor_name = self.__nice_name(sensor_type)
 
-		plt.plot(timestamps, values)
+		plt.plot(timestamps, values, label='Sensor Data')
+
+		# Compute average and draw a dotted red line
+		avg_value = sum(values) / len(values)
+		plt.axhline(avg_value, color='red', linestyle='dotted', linewidth=2, label=f'Avg: {avg_value:.2f}')
+
 		plt.title(f'{sensor_name} Sensor Data (Last {GRAPH_VISIBLE_HOURS} Hours)')
 		plt.xlabel('Timestamp')
 		plt.ylabel('Value')
@@ -48,6 +53,7 @@ class GraphGenerator():
 		plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d %H:%M'))  # Format as readable datetime
 		plt.gca().xaxis.set_major_locator(mdates.AutoDateLocator())  # Auto adjust tick spacing
 
+		plt.legend()  # Show legend including the average line
 		plt.tight_layout()
 
 		output_filename = os.path.join(FOLDER_DATA_FOLDER, f'{sensor_type}.png')

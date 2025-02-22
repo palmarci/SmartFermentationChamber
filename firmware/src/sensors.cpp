@@ -84,7 +84,7 @@ void measure_sensors()
 	
 	// humidity
 	float raw_hum = bme_sensor.readHumidity();
-	logprint("raw humidity = " + String(raw_hum));
+//	logprint("raw humidity = " + String(raw_hum));
 	if (validate_hum_range(raw_hum))
 	{
 		current_hum = raw_hum + BME_HUMIDITY_OFFSET; // add offset only after validation, this can in theory hit the limit
@@ -125,7 +125,6 @@ void measure_sensors()
 	{
 		logprint("invalid data from sensor(s), invalidated current measurement", LOG_WARNING);
 	}
-
 
 }
 
