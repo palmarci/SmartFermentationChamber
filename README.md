@@ -14,6 +14,8 @@ This is a SW + HW (and woodworking) project to create an insulated chamber with 
   - [Box](#box)
   - [Web server graphs](#web-server-graphs)
   - [ESP Web UI](#esp-web-ui)
+- [TODOs](#todos)
+
 
 
 ## Architecture
@@ -97,3 +99,7 @@ I ordered my parts from [Hestore](http://hestore.hu), if anyone needs to look up
 ### ESP Web UI
 ![alt text](doc/web1.png)<br>
 ![alt text](doc/web2.png)<br>
+
+## TODOs
+- went hole with a steppermotor  
+- hum & temp updating at the same time bug
